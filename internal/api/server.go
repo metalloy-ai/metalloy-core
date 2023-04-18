@@ -2,9 +2,11 @@ package api
 
 import (
 	"log"
-	"logiflowCore/internal/config"
 	"net/http"
 	"strconv"
+
+	"logiflowCore/internal/config"
+	"logiflowCore/internal/api/routes"
 
 	"github.com/uptrace/bunrouter"
 )
@@ -18,9 +20,9 @@ type Server struct {
 
 func InitServer() *Server {
 	return &Server{
-		router: bunrouter.New().Compat(),
-		host: config.Host,
-		port: config.Port,
+		router:   	bunrouter.New().Compat(),
+		host:   	config.Host,
+		port:   	config.Port,
 		apiVersion: config.ApiVersion,
 	}
 }
@@ -32,5 +34,6 @@ func (s *Server) Run() {
 }
 
 func (s *Server) LoadConfig() {
+	s.router.WithGroup("/api/v1", routes.V1Routes)
 	
 }

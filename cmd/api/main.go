@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import "logiflowCore/internal/api"
 
 func main() {
-	fmt.Println("Hello from Logiflow API!")
+	server := api.InitServer()
+	server.LoadConfig()
+	server.Run()
 }
