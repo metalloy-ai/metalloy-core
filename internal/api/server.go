@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"logiflowCore/internal/config"
 	"net/http"
 	"strconv"
@@ -9,7 +10,7 @@ import (
 )
 
 type Server struct {
-	router 	   *bunrouter.Router
+	router 	   *bunrouter.CompatRouter
 	host       string
 	port   	   int
 	apiVersion string
@@ -17,7 +18,7 @@ type Server struct {
 
 func InitServer() *Server {
 	return &Server{
-		router: bunrouter.New(),
+		router: bunrouter.New().Compat(),
 		host: config.Host,
 		port: config.Port,
 		apiVersion: config.ApiVersion,
@@ -26,7 +27,8 @@ func InitServer() *Server {
 
 func (s *Server) Run() {
 	url := s.host + ":" + strconv.Itoa(s.port)
-	http.ListenAndServe(url, s.router)
+	log.Println("Server is running on " + url)
+	log.Println(http.ListenAndServe(url, s.router))
 }
 
 func (s *Server) LoadConfig() {

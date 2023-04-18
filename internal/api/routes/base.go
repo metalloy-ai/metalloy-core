@@ -6,7 +6,7 @@ import (
 	"github.com/uptrace/bunrouter"
 )
 
-func BaseRoutes(group *bunrouter.Group) {
-	group.GET("/", bunrouter.HTTPHandlerFunc(handler.BaseHandler))
-	group.GET("/health", bunrouter.HTTPHandlerFunc(handler.HealthHandler))
+func BaseRoutes(group *bunrouter.CompatGroup) {
+	group.GET("/", handler.BaseHandler)
+	group.GET("/health", handler.HealthHandler)
 }
