@@ -2,7 +2,7 @@
 
 - expected response body
 
-```json
+```bash
 {
     "code": int,
     "message": string,
