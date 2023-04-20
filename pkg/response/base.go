@@ -2,18 +2,17 @@ package response
 
 import (
 	"net/http"
-	// "strconv"
 
 	"github.com/uptrace/bunrouter"
 )
 
 type Response struct {
 	Code 	int 		`json:"code"`
-	Data 	interface{} `json:"body"`
 	Message string		`json:"message"`
+	Data 	interface{} `json:"body"`
 }
 
-func InitBody(data interface{}, code int, message string) Response {
+func InitRes(code int, message string, data interface{}) Response {
 	return Response{
 		Code: code,
 		Message: message,
