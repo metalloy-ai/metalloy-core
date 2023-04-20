@@ -1,8 +1,10 @@
 package user
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type UserType string
@@ -29,5 +31,21 @@ type User struct {
 type Role struct {
 	RoleID      int64  `json:"role_id"`
 	RoleName    string `json:"role_name"`
-	Description string `json:"description"`
+}
+
+func (u *User) ScanFromRow(row pgx.Row) error {
+	err := row.Scan(
+		&u.UserID,
+		&u.Username,
+		&u.Email,
+		&u.Password,
+		&u.UserType,
+		&u.FirstName,
+		&u.LastName,
+		&u.PhoneNumber,
+		&u.Address,
+		&u.RegistrationDate,
+		&u.RoleID,
+	)
+	return err
 }
