@@ -4,18 +4,23 @@ import (
 	"logiflowCore/internal/config"
 	"logiflowCore/pkg/response"
 	"net/http"
+	"strconv"
 )
 
-func BaseHandler(w http.ResponseWriter, req *http.Request) {
-	body := response.InitBody(nil, http.StatusOK, "Welcome to Logiflow Core")
+func DefaultHandler(w http.ResponseWriter, req *http.Request) {
+	body := response.InitRes(http.StatusOK, "Welcome to Logiflow Core", nil)
 	response.WrapRes(w, body)
 }
 
-func HealthHandler(w http.ResponseWriter, req *http.Request) {
-	data := map[string]string{
-		"status": "ok",
-		"version": config.Version,
+func HealthHandler(cfg config.Setting) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		data := map[string]string{
+			"status":  "ok",
+			"version": cfg.Version,
+			"host":    cfg.Host,
+			"port":    strconv.Itoa(cfg.Port),
+		}
+		body := response.InitRes(http.StatusOK, "", data)
+		response.WrapRes(w, body)
 	}
-	body := response.InitBody(data, http.StatusOK, "")
-	response.WrapRes(w, body)
 }

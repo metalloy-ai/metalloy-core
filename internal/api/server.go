@@ -5,35 +5,38 @@ import (
 	"net/http"
 	"strconv"
 
-	"logiflowCore/internal/config"
 	"logiflowCore/internal/api/routes"
+	"logiflowCore/internal/config"
 
 	"github.com/uptrace/bunrouter"
+	"github.com/uptrace/bunrouter/extra/reqlog"
 )
 
 type Server struct {
-	router 	   *bunrouter.CompatRouter
-	host       string
-	port   	   int
-	apiVersion string
+	router *bunrouter.CompatRouter
+	config config.Setting
 }
 
-func InitServer() *Server {
+func InitServer(config config.Setting) *Server {
+	options := []bunrouter.Option{}
+	if config.Env == "dev" {
+		options = append(options, bunrouter.Use(reqlog.NewMiddleware()))
+	}
+	
+	newRouter := bunrouter.New(options...).Compat()
 	return &Server{
-		router:   	bunrouter.New().Compat(),
-		host:   	config.Host,
-		port:   	config.Port,
-		apiVersion: config.ApiVersion,
+		router: newRouter,
+		config: config,
 	}
 }
 
 func (s *Server) Run() {
-	url := s.host + ":" + strconv.Itoa(s.port)
+	url := s.config.Host + ":" + strconv.Itoa(s.config.Port)
 	log.Println("Server is running on " + url)
 	log.Println(http.ListenAndServe(url, s.router))
 }
 
-func (s *Server) LoadConfig() {
-	s.router.WithGroup("/api/v1", routes.V1Routes)
-	
+func (s *Server) LoadServerConfig() {
+	s.router.WithGroup("/api/v1", routes.V1Routes(s.config))
+
 }
