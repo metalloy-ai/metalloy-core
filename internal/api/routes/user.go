@@ -13,10 +13,7 @@ func UserRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 	controller := handler.InitUserController(repository)
 	return func(g *bunrouter.CompatGroup) {
 		g.GET("", controller.AllUserHandler)
-		g.GET("/:username", controller.SingleUserHandler)
-		// g.POST("/register", handler.RegisterHandler)
-		// g.POST("/login", handler.LoginHandler)
-		// g.POST("/logout", handler.LogoutHandler)
+		g.GET("/:username", controller.UserHandler)
 		// g.PUT("/:username", handler.UpdateUserHandler)
 		// g.DELETE("/:username", handler.DeleteUserHandler)
 	}

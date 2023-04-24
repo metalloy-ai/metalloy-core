@@ -27,20 +27,20 @@ func (uc UserController) AllUserHandler(w http.ResponseWriter, req *http.Request
 	response.WrapRes(w, body)
 }
 
-func (uc UserController) SingleUserHandler(w http.ResponseWriter, req *http.Request) {
+func (uc UserController) UserHandler(w http.ResponseWriter, req *http.Request) {
 	params := bunrouter.ParamsFromContext(req.Context())
 	username := params.ByName("username")
 	returnedUser, err := uc.Repo.GetUser(username)
 
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
-            body := response.InitRes(http.StatusNotFound, "User not found", username)
-            response.WrapRes(w, body)
-        } else {
-            body := response.InitRes(http.StatusInternalServerError, "Internal server error", nil)
-            response.WrapRes(w, body)
-        }
-        return
+			body := response.InitRes(http.StatusNotFound, "User not found", username)
+			response.WrapRes(w, body)
+		} else {
+			body := response.InitRes(http.StatusInternalServerError, "Internal server error", nil)
+			response.WrapRes(w, body)
+		}
+		return
 	}
 
 	body := response.InitRes(http.StatusOK, "", returnedUser)
