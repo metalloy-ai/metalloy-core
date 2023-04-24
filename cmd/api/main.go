@@ -8,7 +8,7 @@ import (
 
 func main() {
 	cfg := config.LoadBaseConfig()
-	validator.ValidateConfig(*cfg)
+	validator.ValidateConfig()
 	server := api.InitServer(*cfg)
 	server.LoadServerConfig()
 	server.Run()

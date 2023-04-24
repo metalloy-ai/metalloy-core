@@ -1,12 +1,9 @@
 package validator
 
-import (
-	"log"
-	"logiflowCore/internal/config"
-)
+import "log"
 
-func ValidateConfig(cfg config.Setting) {
-	cond := ValidateLoadEnv(cfg) && ValidatePostgres(cfg)
+func ValidateConfig() {
+	cond := ValidateLoadEnv() && ValidatePostgres() && ValidateRedis()
 	if !cond {
 		log.Fatal("validator-error: Unable to validate config.")
 	}

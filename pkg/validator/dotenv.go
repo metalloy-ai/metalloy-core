@@ -2,11 +2,11 @@ package validator
 
 import (
 	"log"
-	"logiflowCore/internal/config"
+	"os"
 )
 
-func ValidateLoadEnv(cfg config.Setting) bool {
-	if cfg.ApiVersion != "v1" {
+func ValidateLoadEnv() bool {
+	if os.Getenv("API_VERSION") != "v1" {
 		log.Fatal("config-error: Unable to load environment variables.")
 		return false
 	}
