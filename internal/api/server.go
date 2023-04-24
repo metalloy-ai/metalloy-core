@@ -7,6 +7,7 @@ import (
 
 	"logiflowCore/internal/api/routes"
 	"logiflowCore/internal/config"
+	"logiflowCore/internal/security/middleware"
 
 	"github.com/uptrace/bunrouter"
 	"github.com/uptrace/bunrouter/extra/reqlog"
@@ -37,6 +38,9 @@ func (s *Server) Run() {
 }
 
 func (s *Server) LoadServerConfig() {
-	s.router.WithGroup("/api/v1", routes.V1Routes(s.config))
-
+	cors := middleware.CorsMiddleware
+	s.router.
+		Use(cors).
+		Compat().
+	WithGroup("/api/v1", routes.V1Routes(s.config))
 }
