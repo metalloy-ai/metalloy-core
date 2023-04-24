@@ -13,9 +13,6 @@ func ValidateRedis() bool {
 		DB:       0,
 	})
 
-	if _, err := conn.Ping().Result(); err != nil {
-		return false
-	}
-
-	return true
+	_, err := conn.Ping().Result()
+	return err == nil
 }
