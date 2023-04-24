@@ -11,7 +11,8 @@ type Setting struct {
 	ApiVersion string
 	Version	   string
 	PG_URL	   string
-	MG_URL	   string
+	REDIS_URL  string
+	REDIS_PWS  string
 	Env        string
 }
 
@@ -23,7 +24,8 @@ func LoadBaseConfig() *Setting {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	host := os.Getenv("HOST")
 	PG_URL := os.Getenv("PG_URL")
-	MG_URL := os.Getenv("MG_URL")
+	REDIS_URL := os.Getenv("REDIS_URL")
+	REDIS_PWS := os.Getenv("REDIS_PSW")
 	env := os.Getenv("ENV")
 
 	return &Setting{
@@ -32,7 +34,8 @@ func LoadBaseConfig() *Setting {
 		ApiVersion: apiVersion,
 		Version:    version,
 		PG_URL:     PG_URL,
-		MG_URL:     MG_URL,
+		REDIS_URL:  REDIS_URL,
+		REDIS_PWS:  REDIS_PWS,
 		Env:        env,
 	}
 }
