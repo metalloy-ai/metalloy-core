@@ -3,23 +3,20 @@ package validator
 import (
 	"context"
 	"log"
-	"os"
-	"time"
+	"logiflowCore/internal/config"
+	"logiflowCore/internal/database"
 
-	"github.com/jackc/pgx/v5"
+	"time"
 )
 
-func ValidatePostgres() bool {
-	client, err := pgx.Connect(context.Background(), os.Getenv("PG_URL"))
-	if err != nil {
-		log.Fatal(err)
-	}
+func ValidatePostgres(cfg config.Setting) bool {
+	client := database.GetClient(cfg)
 
 	ctx := context.Background()
 	query := "SELECT NOW()"
 	var example time.Time
 	
-	err = client.QueryRow(ctx, query).Scan(&example)
+	err := client.QueryRow(ctx, query).Scan(&example)
 	if err != nil {
 		log.Fatal("Unable to connect to Postgres.", err)
 		return false
