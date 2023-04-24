@@ -27,10 +27,11 @@ func (r *Repository) GetAllUser() ([]User, []pgx.Row) {
 
 	for rows.Next() {
 		user := User{}
+		
 		if err := user.ScanFromRow(rows); err != nil {
-
 			failedUsers = append(failedUsers, rows)
 		}
+
 		users = append(users, user)
 	}
 
@@ -42,14 +43,14 @@ func (r *Repository) GetUser(username string) (User, error) {
 	row := r.db.QueryRow(context.Background(), query, username)
 
 	user := User{}
+	err := user.ScanFromRow(row);
 
-	if err := user.ScanFromRow(row); err != nil {
-		if err := user.ScanFromRow(row); err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				return User{}, ErrUserNotFound
-			}
-			return User{}, err
-		}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return User{}, ErrUserNotFound
+	}
+
+	if err != nil {
+		return User{}, err
 	}
 
 	return user, nil
