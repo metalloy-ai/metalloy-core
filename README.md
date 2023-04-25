@@ -1,8 +1,8 @@
-# logiflow-core
+# metalloy-core
 
 ## Overview
 
-logiflow core is the backbone service for handling all users and the authentication in the logiflow application.
+metalloy core is the backbone service for handling all users and the authentication in the metalloy ai logistics platform.
 
 ---
 
