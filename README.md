@@ -15,7 +15,7 @@ metalloy core is the backbone service for handling all users and the authenticat
 - Clone the repository
 
 ```bash
-git clone https://github.com/LogiFlow/logiflow-core
+git clone https://github.com/metalloy-ai/metalloy-core
 ```
 
 ### Running the service
