@@ -11,10 +11,12 @@ type Repository struct {
 	db *pgx.Conn
 }
 
-var ErrUserNotFound = errors.New("user not found")
-
-func (r *Repository) GetAllUser() ([]User, []pgx.Row) {
-	query := "SELECT * FROM users"
+func (r *Repository) GetAllUser() ([]UserResponse, []pgx.Row) {
+	query := `
+	SELECT 
+		user_id, username, email, user_type, first_name, last_name, 
+		phone_number, address_id, registration_date 
+	FROM users`
 	rows, err := r.db.Query(context.Background(), query)
 
 	if err != nil {
@@ -22,20 +24,46 @@ func (r *Repository) GetAllUser() ([]User, []pgx.Row) {
 	}
 	defer rows.Close()
 
-	users := []User{}
+	users := []UserResponse{}
 	failedUsers := []pgx.Row{}
 
 	for rows.Next() {
-		user := User{}
+		user := UserResponse{}
 		
 		if err := user.ScanFromRow(rows); err != nil {
 			failedUsers = append(failedUsers, rows)
+		} else {
+			users = append(users, user)
 		}
 
-		users = append(users, user)
 	}
 
 	return users, failedUsers
+}
+
+func (r *Repository) GetFullUser(username string) (FullUserResponse, error) {
+	query := `
+	SELECT 
+		u.user_id, u.username, u.email, u.user_type, u.first_name, u.last_name, 
+		u.phone_number, u.address_id, u.registration_date,
+		a.street_address, a.city, a.state, a.country, a.postal_code
+	FROM users as u
+	JOIN addresses as a ON u.address_id = a.address_id
+	WHERE u.username = $1`
+	row := r.db.QueryRow(context.Background(), query, username)
+
+	user := FullUserResponse{}
+	err := user.ScanFromRow(row);
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return FullUserResponse{}, ErrUserNotFound
+	}
+
+	if err != nil {
+		return FullUserResponse{}, err
+	}
+
+	return user, nil
 }
 
 func (r *Repository) GetUser(username string) (User, error) {

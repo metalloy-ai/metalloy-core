@@ -1,14 +1,15 @@
 package user
 
 import (
-	"logiflowCore/internal/config"
-	"logiflowCore/internal/database"
+	"metalloyCore/internal/config"
+	"metalloyCore/internal/database"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type UserRepository interface {
-	GetAllUser() ([]User, []pgx.Row)
+	GetAllUser() ([]UserResponse, []pgx.Row)
+	GetFullUser(username string) (FullUserResponse, error)
 	GetUser(username string) (User, error)
 }
 

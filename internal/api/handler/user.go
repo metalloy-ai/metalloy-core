@@ -2,8 +2,8 @@ package handler
 
 import (
 	"errors"
-	"logiflowCore/internal/domain/user"
-	"logiflowCore/pkg/response"
+	"metalloyCore/internal/domain/user"
+	"metalloyCore/pkg/response"
 	"net/http"
 
 	"github.com/uptrace/bunrouter"
@@ -30,7 +30,7 @@ func (uc UserController) AllUserHandler(w http.ResponseWriter, req *http.Request
 func (uc UserController) UserHandler(w http.ResponseWriter, req *http.Request) {
 	params := bunrouter.ParamsFromContext(req.Context())
 	username := params.ByName("username")
-	returnedUser, err := uc.Repo.GetUser(username)
+	returnedUser, err := uc.Repo.GetFullUser(username)
 
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
