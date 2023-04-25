@@ -1,7 +1,7 @@
 package database
 
 import (
-	"logiflowCore/internal/config"
+	"metalloyCore/internal/config"
 
 	"github.com/go-redis/redis"
 )

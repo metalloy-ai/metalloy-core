@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"logiflowCore/internal/config"
-	"logiflowCore/pkg/response"
+	"metalloyCore/internal/config"
+	"metalloyCore/pkg/response"
 	"net/http"
 	"strconv"
 )

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"logiflowCore/internal/api/routes"
-	"logiflowCore/internal/config"
-	"logiflowCore/internal/security/middleware"
+	"metalloyCore/internal/api/routes"
+	"metalloyCore/internal/config"
+	"metalloyCore/internal/security/middleware"
 
 	"github.com/uptrace/bunrouter"
 	"github.com/uptrace/bunrouter/extra/reqlog"
@@ -23,7 +23,7 @@ func InitServer(config config.Setting) *Server {
 	if config.Env == "dev" {
 		options = append(options, bunrouter.Use(reqlog.NewMiddleware()))
 	}
-	
+
 	newRouter := bunrouter.New(options...).Compat()
 	return &Server{
 		router: newRouter,
@@ -42,5 +42,5 @@ func (s *Server) LoadServerConfig() {
 	s.router.
 		Use(cors).
 		Compat().
-	WithGroup("/api/v1", routes.V1Routes(s.config))
+		WithGroup("/api/v1", routes.V1Routes(s.config))
 }

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"logiflowCore/internal/api/handler"
-	"logiflowCore/internal/config"
+	"metalloyCore/internal/api/handler"
+	"metalloyCore/internal/config"
 
 	"github.com/uptrace/bunrouter"
 )

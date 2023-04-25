@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"log"
-	"logiflowCore/internal/config"
+	"metalloyCore/internal/config"
 
 	"github.com/jackc/pgx/v5"
 )

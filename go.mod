@@ -1,4 +1,4 @@
-module logiflowCore
+module metalloyCore
 
 go 1.20
 

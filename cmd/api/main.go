@@ -1,9 +1,9 @@
 package main
 
 import (
-	"logiflowCore/internal/api"
-	"logiflowCore/internal/config"
-	"logiflowCore/pkg/validator"
+	"metalloyCore/internal/api"
+	"metalloyCore/internal/config"
+	"metalloyCore/pkg/validator"
 )
 
 func main() {
