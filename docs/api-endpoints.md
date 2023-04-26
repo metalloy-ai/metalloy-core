@@ -59,12 +59,12 @@ HOST="localhost"
 }
 ```
 
-### Address Response
+### Address Response Body
 
 ```bash
 {
     "address_id": int,
-    ... Same as Address Body ...
+    ... Same as Address Request Body ...
 }
 ```
 
