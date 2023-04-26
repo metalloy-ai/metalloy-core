@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"metalloyCore/tools"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -56,7 +57,7 @@ func (r *Repository) GetFullUser(username string) (FullUserResponse, error) {
 	err := user.ScanFromRow(row);
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return FullUserResponse{}, ErrUserNotFound
+		return FullUserResponse{}, tools.ErrUserNotFound
 	}
 
 	if err != nil {
@@ -74,7 +75,7 @@ func (r *Repository) GetUser(username string) (User, error) {
 	err := user.ScanFromRow(row);
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return User{}, ErrUserNotFound
+		return User{}, tools.ErrUserNotFound
 	}
 
 	if err != nil {
@@ -83,3 +84,27 @@ func (r *Repository) GetUser(username string) (User, error) {
 
 	return user, nil
 }
+
+func (r *Repository) UpdateUser(user User) (UserResponse, error) {return UserResponse{}, nil}
+
+func (r *Repository) DeleteUser(username string) error {return nil}
+
+func (r *Repository) GetAddress(username string) (Address, error) {
+	query := `
+	SELECT a.* 
+	FROM addresses as a
+	JOIN users as u ON a.address_id = u.address_id
+	WHERE u.username = $1`
+	row := r.db.QueryRow(context.Background(), query, username)
+
+	address := Address{}
+	err := address.ScanFromRow(row)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Address{}, tools.ErrUserNotFound
+	}
+
+	return address, nil
+}
+
+func (r *Repository) UpdateAddress(Address Address) error {return nil}
