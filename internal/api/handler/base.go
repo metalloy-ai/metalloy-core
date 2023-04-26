@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"metalloyCore/internal/config"
-	"metalloyCore/pkg/response"
 	"net/http"
 	"strconv"
+	
+	"metalloyCore/internal/config"
+	"metalloyCore/pkg/response"
 )
 
 func DefaultHandler(w http.ResponseWriter, req *http.Request) {
