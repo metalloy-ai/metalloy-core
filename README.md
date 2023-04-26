@@ -57,5 +57,5 @@ make test[Unit]
 
 ## Documentation
 
-- [Endpoints Doc](./docs/api-endpoints.md)
+- [API Doc](./docs/api-endpoints.md)
 - [Architecture Doc](./docs/architecture.md)
