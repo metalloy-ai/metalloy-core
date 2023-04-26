@@ -8,13 +8,28 @@ import (
 	"github.com/uptrace/bunrouter"
 )
 
-func UserRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
+func UsersRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 	repository := user.InitRepository(cfg)
 	controller := handler.InitUserController(repository)
 	return func(g *bunrouter.CompatGroup) {
 		g.GET("", controller.AllUserHandler)
-		g.GET("/:username", controller.UserHandler)
-		// g.PUT("/:username", handler.UpdateUserHandler)
-		// g.DELETE("/:username", handler.DeleteUserHandler)
+		g.GET("/user", controller.EmptyParamHandler)
+		g.WithGroup("/user/:username", UserRoutes(controller))
+	}
+}
+
+func UserRoutes(controller *handler.UserController) func(g *bunrouter.CompatGroup) {
+	return func(g *bunrouter.CompatGroup) {
+		g.GET("", controller.UserHandler)
+		g.PUT("", controller.UpdateUserHandler)
+		g.DELETE("", controller.DeleteUserHandler)
+		g.WithGroup("/address", AddressRoutes(controller))
+	}
+}
+
+func AddressRoutes(controller *handler.UserController) func(g *bunrouter.CompatGroup) {
+	return func(g *bunrouter.CompatGroup) {
+		g.GET("", controller.GetAddressHandler)
+		g.POST("", controller.UpdateAddressHandler)
 	}
 }
