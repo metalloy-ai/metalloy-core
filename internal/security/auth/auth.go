@@ -15,14 +15,14 @@ type LoginReq struct {
 func (lq *LoginReq) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(lq)
 	if err != nil {
-		return tools.ErrInvalidReqBody
+		return tools.ErrInvalidReqBody{}
 	}
 	return nil
 }
 
 func (lq *LoginReq) Validate() error {
 	if lq.Username == "" || lq.Password == "" {
-		return tools.ErrMissingParams
+		return tools.ErrMissingParams{}
 	}
 	return nil
 }

@@ -57,7 +57,7 @@ func (r *Repository) GetFullUser(username string) (FullUserResponse, error) {
 	err := user.ScanFromRow(row);
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return FullUserResponse{}, tools.ErrUserNotFound
+		return FullUserResponse{}, tools.ErrUserNotFound{}
 	}
 
 	if err != nil {
@@ -75,7 +75,7 @@ func (r *Repository) GetUser(username string) (User, error) {
 	err := user.ScanFromRow(row);
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return User{}, tools.ErrUserNotFound
+		return User{}, tools.ErrUserNotFound{}
 	}
 
 	if err != nil {
@@ -101,7 +101,7 @@ func (r *Repository) GetAddress(username string) (Address, error) {
 	err := address.ScanFromRow(row)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Address{}, tools.ErrUserNotFound
+		return Address{}, tools.ErrUserNotFound{}
 	}
 
 	return address, nil

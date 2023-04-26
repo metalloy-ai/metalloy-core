@@ -18,14 +18,14 @@ func (as AuthService) Login(username string, password string) (user.UserResponse
 	User, err := as.Repo.GetUser(username)
 
 	if err != nil {
-		return user.UserResponse{}, tools.ErrUserNotFound
+		return user.UserResponse{}, tools.ErrUserNotFound{}
 	}
 
 	if security.ValidatePassword(&User.Password, password) {
 		return *User.ToReponse(), nil
 	}
 
-	return user.UserResponse{}, tools.ErrInvalidCredentials
+	return user.UserResponse{}, tools.ErrInvalidCredentials{}
 }
 
 func (as AuthService) Register(username string, password string) {}

@@ -1,42 +1,45 @@
 package tools
 
 import (
-	"errors"
-	"metalloyCore/pkg/response"
 	"net/http"
+	
+	"metalloyCore/pkg/response"
 )
 
-var ErrInvalidCredentials error = errors.New("invalid credentials")
-var ErrInvalidReqBody error = errors.New("invalid request body")
-var ErrMissingParams error = errors.New("missing params")
-var ErrUserNotFound error = errors.New("user not found")
-var ErrUserAlreadyExist error = errors.New("user already exist")
+type ErrInvalidCredentials struct{}
+type ErrInvalidReqBody struct{}
+type ErrMissingParams struct{}
+type ErrUserNotFound struct{}
+type ErrUserAlreadyExist struct{}
+
+func (e ErrInvalidCredentials) Error() string {return "invalid credentials"}
+func (e ErrInvalidReqBody) Error() string {return "invalid request body"}
+func (e ErrMissingParams) Error() string {return "missing params"}
+func (e ErrUserNotFound) Error() string {return "user not found"}
+func (e ErrUserAlreadyExist) Error() string {return "user already exists"}
 
 func HandleError(err error, w http.ResponseWriter) bool {
-	if errors.Is(err, ErrInvalidCredentials) {
+	switch err.(type) {
+	case ErrInvalidCredentials:
 		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: login failed, invalid username or password", nil)
 		response.WrapRes(w, body)
-		return false
-	} else if errors.Is(err, ErrInvalidReqBody) {
+	case ErrInvalidReqBody:
 		body := response.InitRes(http.StatusBadRequest, "Bad request: Unable to process request body", nil)
 		response.WrapRes(w, body)
-		return false
-	} else if errors.Is(err, ErrUserNotFound) {
+	case ErrUserNotFound:
 		body := response.InitRes(http.StatusNotFound, "Not Found: User was not found", nil)
 		response.WrapRes(w, body)
-		return false
-	} else if errors.Is(err, ErrUserAlreadyExist) {
-		body := response.InitRes(http.StatusConflict, "Conflict: User already exist", nil)
+	case ErrUserAlreadyExist:
+		body := response.InitRes(http.StatusConflict, "Conflict: User already exists", nil)
 		response.WrapRes(w, body)
-		return false
-	} else if errors.Is(err, ErrMissingParams) {
+	case ErrMissingParams:
 		body := response.InitRes(http.StatusBadRequest, "Bad request: Missing or Empty parameter", nil)
 		response.WrapRes(w, body)
-		return false
-	} else if err != nil {
+	case nil:
+		return true
+	default:
 		body := response.InitRes(http.StatusInternalServerError, "Internal server error", nil)
 		response.WrapRes(w, body)
-		return false
 	}
-	return true
+	return false
 }
