@@ -29,6 +29,21 @@ func (r *Repository) GetAddress(username string) (Address, error) {
 	return address, nil
 }
 
+func (r *Repository) CreateAddress(tx pgx.Tx, address UserCreate) (Address, error) {
+	query := `
+	INSERT INTO addresses (
+		street_address, city, state, country, postal_code
+	) VALUES (
+		$1, $2, $3, $4, $5
+	) returning *`
+	row := tx.QueryRow(context.Background(), query,
+		address.StreetAddress, address.City, address.State, address.Country, address.PostalCode)
+
+	newAddress := Address{}
+	err := newAddress.ScanFromRow(row)
+	return newAddress, err
+}
+
 func (r *Repository) UpdateAddress(address AddressBase, username string) (Address, error) {
 	fieldMap := map[string]interface{}{
 		"street_address": address.StreetAddress,
@@ -53,7 +68,7 @@ func (r *Repository) UpdateAddress(address AddressBase, username string) (Addres
 	err := newAddress.ScanFromRow(row)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Address{}, err
+		return Address{}, tools.ErrUserNotFound{}
 	}
 
 	return newAddress, nil

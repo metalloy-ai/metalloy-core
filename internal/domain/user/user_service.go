@@ -40,7 +40,6 @@ func (r *Repository) GetAllUser() ([]UserResponse, error) {
 		} else {
 			users = append(users, user)
 		}
-
 	}
 
 	if len(failedUsers) > 0 {
@@ -134,31 +133,25 @@ func (r *Repository) DeleteUser(username string) error {
 	WHERE address_id IN (SELECT address_id FROM deleted_users)`
 	res, err := r.db.Exec(context.Background(), query, username)
 
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return tools.ErrUserNotFound{}
-		}
-		println(err.Error())
-		return err
-	}
-
 	if res.RowsAffected() == 0 {
 		return tools.ErrUserNotFound{}
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return err
 }
 
 func (r *Repository) CreateUser(user UserCreate) (UserResponse, error) {
-	query := `
-	INSERT INTO addresses (street_address, city, state, country, postal_code)
-	VALUES ($1, $2, $3, $4, $5)
-	RETURNING *`
-	row := r.db.QueryRow(context.Background(), query,
-		user.StreetAddress, user.City, user.State, user.Country, user.PostalCode)
+	tx, err := r.db.BeginTx(context.Background(), pgx.TxOptions{})
+	if err != nil {
+		return UserResponse{}, err
+	}
+	defer tx.Rollback(context.Background())
 
-	address := Address{}
-	err := address.ScanFromRow(row)
+	address, err := r.CreateAddress(tx, user)
 
 	if err != nil {
 		return UserResponse{}, err
@@ -169,14 +162,14 @@ func (r *Repository) CreateUser(user UserCreate) (UserResponse, error) {
 		return UserResponse{}, err
 	}
 
-	query = `
-	INSERT INTO users (username, email, password, user_type, first_name, last_name,
-		phone_number, address_id)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	RETURNING
-		user_id, username, email, user_type, first_name, last_name,
-		phone_number, address_id, registration_date`
-	row = r.db.QueryRow(context.Background(), query,
+	query := `
+        INSERT INTO users (username, email, password, user_type, first_name, last_name,
+            phone_number, address_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING
+            user_id, username, email, user_type, first_name, last_name,
+            phone_number, address_id, registration_date`
+	row := tx.QueryRow(context.Background(), query,
 		user.Username, user.Email, hashedPsw, user.UserType, user.FirstName,
 		user.LastName, user.PhoneNumber, address.AddressID)
 
@@ -189,6 +182,11 @@ func (r *Repository) CreateUser(user UserCreate) (UserResponse, error) {
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return UserResponse{}, tools.ErrUserAlreadyExist{}
 		}
+
+		return UserResponse{}, err
+	}
+
+	if err = tx.Commit(context.Background()); err != nil {
 		return UserResponse{}, err
 	}
 
