@@ -34,17 +34,17 @@ HOST="localhost"
 ## User Routes
 
 ```bash
-    - [GET] /users
-    - [GET] /users/user/:username
-    - [PUT] /users/user/:username
-    - [DEL] /users/user/:username
+    - [GET]   /users
+    - [GET]   /users/user/:username
+    - [PATCH] /users/user/:username
+    - [DEL]   /users/user/:username
 ```
 
 ## User Sub-Routes (Address)
 
 ```bash
-    - [GET] /users/user/:username/address
-    - [PUT] /users/user/:username/address
+    - [GET]   /users/user/:username/address
+    - [PATCH] /users/user/:username/address
 ```
 
 ### Address Request Body
