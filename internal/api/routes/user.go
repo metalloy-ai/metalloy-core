@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"github.com/uptrace/bunrouter"
+
 	"metalloyCore/internal/api/handler"
 	"metalloyCore/internal/config"
 	"metalloyCore/internal/domain/user"
-
-	"github.com/uptrace/bunrouter"
 )
 
 func UsersRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
@@ -21,7 +21,7 @@ func UsersRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 func UserRoutes(controller *handler.UserController) func(g *bunrouter.CompatGroup) {
 	return func(g *bunrouter.CompatGroup) {
 		g.GET("", controller.UserHandler)
-		g.PUT("", controller.UpdateUserHandler)
+		g.PATCH("", controller.UpdateUserHandler)
 		g.DELETE("", controller.DeleteUserHandler)
 		g.WithGroup("/address", AddressRoutes(controller))
 	}
@@ -30,6 +30,6 @@ func UserRoutes(controller *handler.UserController) func(g *bunrouter.CompatGrou
 func AddressRoutes(controller *handler.UserController) func(g *bunrouter.CompatGroup) {
 	return func(g *bunrouter.CompatGroup) {
 		g.GET("", controller.GetAddressHandler)
-		g.POST("", controller.UpdateAddressHandler)
+		g.PATCH("", controller.UpdateAddressHandler)
 	}
 }
