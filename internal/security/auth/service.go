@@ -22,7 +22,7 @@ func (as AuthService) Login(username string, password string) (user.UserResponse
 	}
 
 	if security.ValidatePassword(&User.Password, password) {
-		return user.UserResponse{}, nil
+		return *User.ToReponse(), nil
 	}
 
 	return user.UserResponse{}, tools.ErrInvalidCredentials{}
