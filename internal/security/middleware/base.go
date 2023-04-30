@@ -5,7 +5,6 @@ import (
 
 	"github.com/uptrace/bunrouter"
 )
-
 func CorsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 	allowedOrgins := []string{"http://localhost:3000"}
 
@@ -19,7 +18,7 @@ func CorsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 				break
 			}
 		}
-		
+
 		if !validOrigin {
 			return next(w, req)
 		}
