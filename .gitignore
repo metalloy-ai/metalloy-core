@@ -15,4 +15,5 @@
 # vendor/
 .env
 test.go
+*.gobook
 .vscode
