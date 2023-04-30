@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"metalloyCore/internal/domain/user"
 	"metalloyCore/internal/security/auth"
 	"metalloyCore/pkg/response"
 	"metalloyCore/tools"
@@ -18,11 +19,14 @@ func InitAuthController(svc auth.AuthService) *AuthController {
 
 func (ac AuthController) LoginHandler(w http.ResponseWriter, req *http.Request) {
 	loginBody := auth.LoginReq{}
-	
-	if !tools.HandleError(loginBody.DecodeBody(req.Body), w) {
+
+	err := loginBody.DecodeBody(req.Body)
+	if !tools.HandleError(err, w) {
 		return
 	}
-	if !tools.HandleError(loginBody.Validate(), w) {
+	
+	err = loginBody.Validate()
+	if !tools.HandleError(err, w) {
 		return
 	}
 
@@ -32,8 +36,29 @@ func (ac AuthController) LoginHandler(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	body := response.InitRes(http.StatusOK, "", user)
-	response.WrapRes(w, body)
+	body := *response.InitRes(http.StatusOK, "", user)
+	response.WrapRes(w, &body)
 }
 
-func (ac AuthController) RegisterHandler(w http.ResponseWriter, req *http.Request) {}
+func (ac AuthController) RegisterHandler(w http.ResponseWriter, req *http.Request) {
+	registerBody := user.UserCreate{}
+	
+	err := registerBody.DecodeBody(req.Body)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	err = registerBody.Validate()
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	user, err := ac.Svc.Register(registerBody)
+
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	body := *response.InitRes(http.StatusOK, "", user)
+	response.WrapRes(w, &body)
+}

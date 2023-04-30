@@ -22,10 +22,18 @@ func (as AuthService) Login(username string, password string) (user.UserResponse
 	}
 
 	if security.ValidatePassword(&User.Password, password) {
-		return *User.ToReponse(), nil
+		return user.UserResponse{}, nil
 	}
 
 	return user.UserResponse{}, tools.ErrInvalidCredentials{}
 }
 
-func (as AuthService) Register(username string, password string) {}
+func (as AuthService) Register(newUser user.UserCreate) (user.UserResponse, error) {
+	User, err := as.Repo.CreateUser(newUser)
+
+	if err != nil {
+		return user.UserResponse{}, err
+	}
+
+	return User, nil
+}
