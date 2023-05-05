@@ -19,15 +19,16 @@ func InitUserController(service user.UserService) *UserController {
 	return &UserController{Service: service}
 }
 
-func (uc UserController) EmptyParamHandler(w http.ResponseWriter, req *http.Request) {
+func (uc *UserController) EmptyParamHandler(w http.ResponseWriter, req *http.Request) {
 	body := *response.InitRes(http.StatusBadRequest, "Bad request: empty parameter", nil)
 	response.WrapRes(w, &body)
 }
 
-func (uc UserController) AllUserHandler(w http.ResponseWriter, req *http.Request) {
-	users, err := uc.Service.GetAllUser()
+func (uc *UserController) AllUserHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	users, err := uc.Service.GetAllUser(ctx)
 	res := map[string]interface{}{
-		"users":       users,
+		"users": users,
 	}
 
 	if err != nil {
@@ -37,14 +38,15 @@ func (uc UserController) AllUserHandler(w http.ResponseWriter, req *http.Request
 		tools.HandleError(err, w)
 		return
 	}
-	
+
 	body := *response.InitRes(http.StatusOK, "", res)
 	response.WrapRes(w, &body)
 }
 
-func (uc UserController) UserHandler(w http.ResponseWriter, req *http.Request) {
-	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
-	returnedUser, err := uc.Service.GetFullUser(username)
+func (uc *UserController) UserHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	username := bunrouter.ParamsFromContext(ctx).ByName("username")
+	returnedUser, err := uc.Service.GetFullUser(ctx, username)
 
 	if !tools.HandleError(err, w) {
 		return
@@ -54,8 +56,9 @@ func (uc UserController) UserHandler(w http.ResponseWriter, req *http.Request) {
 	response.WrapRes(w, &body)
 }
 
-func (uc UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Request) {
-	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
+func (uc *UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	username := bunrouter.ParamsFromContext(ctx).ByName("username")
 	user := *user.InitUserUpdate(username)
 
 	err := user.DecodeBody(req.Body)
@@ -63,7 +66,7 @@ func (uc UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	returnedUser, err := uc.Service.UpdateUser(user)
+	returnedUser, err := uc.Service.UpdateUser(ctx, user)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -72,10 +75,11 @@ func (uc UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Requ
 	response.WrapRes(w, &body)
 }
 
-func (uc UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Request) {
-	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
-	
-	err := uc.Service.DeleteUser(username)
+func (uc *UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	username := bunrouter.ParamsFromContext(ctx).ByName("username")
+
+	err := uc.Service.DeleteUser(ctx, username)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -84,9 +88,10 @@ func (uc UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Requ
 	response.WrapRes(w, &body)
 }
 
-func (uc UserController) GetAddressHandler(w http.ResponseWriter, req *http.Request) {
-	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
-	returnedAddress, err := uc.Service.GetAddress(username)
+func (uc *UserController) GetAddressHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	username := bunrouter.ParamsFromContext(ctx).ByName("username")
+	returnedAddress, err := uc.Service.GetAddress(ctx, username)
 
 	if !tools.HandleError(err, w) {
 		return
@@ -96,16 +101,17 @@ func (uc UserController) GetAddressHandler(w http.ResponseWriter, req *http.Requ
 	response.WrapRes(w, &body)
 }
 
-func (uc UserController) UpdateAddressHandler(w http.ResponseWriter, req *http.Request) {
-	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
+func (uc *UserController) UpdateAddressHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	username := bunrouter.ParamsFromContext(ctx).ByName("username")
 	address := user.AddressBase{}
-	
+
 	err := address.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
 		return
 	}
 
-	returnedAddress, err := uc.Service.UpdateAddress(address, username)
+	returnedAddress, err := uc.Service.UpdateAddress(ctx, address, username)
 	if !tools.HandleError(err, w) {
 		return
 	}
