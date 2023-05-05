@@ -10,7 +10,8 @@ import (
 
 func UsersRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 	repository := user.InitRepository(cfg)
-	controller := handler.InitUserController(repository)
+	service := user.InitUserService(repository)
+	controller := handler.InitUserController(service)
 	return func(g *bunrouter.CompatGroup) {
 		g.GET("", controller.AllUserHandler)
 		g.GET("/user", controller.EmptyParamHandler)

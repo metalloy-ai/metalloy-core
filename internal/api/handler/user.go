@@ -12,11 +12,11 @@ import (
 )
 
 type UserController struct {
-	Repo user.UserRepository
+	Service user.UserService
 }
 
-func InitUserController(repo user.UserRepository) *UserController {
-	return &UserController{Repo: repo}
+func InitUserController(service user.UserService) *UserController {
+	return &UserController{Service: service}
 }
 
 func (uc UserController) EmptyParamHandler(w http.ResponseWriter, req *http.Request) {
@@ -25,7 +25,7 @@ func (uc UserController) EmptyParamHandler(w http.ResponseWriter, req *http.Requ
 }
 
 func (uc UserController) AllUserHandler(w http.ResponseWriter, req *http.Request) {
-	users, err := uc.Repo.GetAllUser()
+	users, err := uc.Service.GetAllUser()
 	res := map[string]interface{}{
 		"users":       users,
 	}
@@ -44,7 +44,7 @@ func (uc UserController) AllUserHandler(w http.ResponseWriter, req *http.Request
 
 func (uc UserController) UserHandler(w http.ResponseWriter, req *http.Request) {
 	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
-	returnedUser, err := uc.Repo.GetFullUser(username)
+	returnedUser, err := uc.Service.GetFullUser(username)
 
 	if !tools.HandleError(err, w) {
 		return
@@ -63,7 +63,7 @@ func (uc UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	returnedUser, err := uc.Repo.UpdateUser(user)
+	returnedUser, err := uc.Service.UpdateUser(user)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -75,7 +75,7 @@ func (uc UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Requ
 func (uc UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Request) {
 	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
 	
-	err := uc.Repo.DeleteUser(username)
+	err := uc.Service.DeleteUser(username)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -86,7 +86,7 @@ func (uc UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Requ
 
 func (uc UserController) GetAddressHandler(w http.ResponseWriter, req *http.Request) {
 	username := bunrouter.ParamsFromContext(req.Context()).ByName("username")
-	returnedAddress, err := uc.Repo.GetAddress(username)
+	returnedAddress, err := uc.Service.GetAddress(username)
 
 	if !tools.HandleError(err, w) {
 		return
@@ -105,7 +105,7 @@ func (uc UserController) UpdateAddressHandler(w http.ResponseWriter, req *http.R
 		return
 	}
 
-	returnedAddress, err := uc.Repo.UpdateAddress(address, username)
+	returnedAddress, err := uc.Service.UpdateAddress(address, username)
 	if !tools.HandleError(err, w) {
 		return
 	}
