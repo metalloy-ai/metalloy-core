@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+
 	"github.com/jackc/pgx/v5"
 
 	"metalloyCore/internal/config"
@@ -8,14 +10,14 @@ import (
 )
 
 type UserRepository interface {
-	GetAllUser() ([]UserResponse, []pgx.Row)
-	GetFullUser(username string) (FullUserResponse, error)
-	GetUser(username string) (User, error)
-	UpdateUser(user UserUpdate) (UserResponse, error)
-	CreateUser(newUser UserCreate) (UserResponse, error)
-	DeleteUser(username string) error
-	GetAddress(username string) (Address, error)
-	UpdateAddress(address AddressBase, username string) (Address, error)
+	GetAllUser(ctx context.Context) ([]UserResponse, []pgx.Row)
+	GetFullUser(ctx context.Context, username string) (FullUserResponse, error)
+	GetUser(ctx context.Context, username string) (User, error)
+	UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (UserResponse, error)
+	CreateUser(ctx context.Context, newUser UserCreate, hashedPsw string) (UserResponse, error)
+	DeleteUser(ctx context.Context, username string) error
+	GetAddress(ctx context.Context, username string) (Address, error)
+	UpdateAddress(ctx context.Context, updateArr []string, args []interface{}, argsCount int, username string) (Address, error)
 }
 
 type Repository struct {

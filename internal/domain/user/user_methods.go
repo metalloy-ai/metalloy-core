@@ -2,24 +2,21 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 
-	"metalloyCore/internal/security"
 	"metalloyCore/tools"
 )
 
-func (r *Repository) GetAllUser() ([]UserResponse, []pgx.Row) {
+func (r *Repository) GetAllUser(ctx context.Context) ([]UserResponse, []pgx.Row) {
 	query := `
 	SELECT 
 		user_id, username, email, user_type, first_name, last_name, 
 		phone_number, address_id, registration_date 
 	FROM users`
-	rows, err := r.db.Query(context.Background(), query)
+	rows, err := r.db.Query(ctx, query)
 
 	if err != nil {
 		return []UserResponse{}, nil
@@ -41,7 +38,7 @@ func (r *Repository) GetAllUser() ([]UserResponse, []pgx.Row) {
 	return users, failedUsers
 }
 
-func (r *Repository) GetFullUser(username string) (FullUserResponse, error) {
+func (r *Repository) GetFullUser(ctx context.Context, username string) (FullUserResponse, error) {
 	query := `
 	SELECT 
 		u.user_id, u.username, u.email, u.user_type, u.first_name, u.last_name, 
@@ -50,7 +47,7 @@ func (r *Repository) GetFullUser(username string) (FullUserResponse, error) {
 	FROM users as u
 	JOIN addresses as a ON u.address_id = a.address_id
 	WHERE u.username = $1`
-	row := r.db.QueryRow(context.Background(), query, username)
+	row := r.db.QueryRow(ctx, query, username)
 
 	user := FullUserResponse{}
 	err := user.ScanFromRow(row)
@@ -58,33 +55,21 @@ func (r *Repository) GetFullUser(username string) (FullUserResponse, error) {
 	return user, err
 }
 
-func (r *Repository) GetUser(username string) (User, error) {
+func (r *Repository) GetUser(ctx context.Context, username string) (User, error) {
 	query := `
 	SELECT 
 		user_id, username, email, user_type, first_name, last_name,
 		phone_number, address_id, registration_date, password
 	FROM users WHERE username = $1`
-	row := r.db.QueryRow(context.Background(), query, username)
+	row := r.db.QueryRow(ctx, query, username)
 
 	user := User{}
 	err := user.ScanFromRow(row)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		return User{}, tools.ErrUserNotFound{}
-	}
-
-	return user, nil
+	return user, err
 }
 
-func (r *Repository) UpdateUser(user UserUpdate) (UserResponse, error) {
-	fieldMap := map[string]interface{}{
-		"email":        user.Email,
-		"first_name":   user.FirstName,
-		"last_name":    user.LastName,
-		"phone_number": user.PhoneNumber,
-	}
-	updateArr, args, argsCount := tools.BuildUpdateQueryArgs(fieldMap, user.Username)
-
+func (r *Repository) UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (UserResponse, error) {
 	query := fmt.Sprintf(`
 	UPDATE users
 	SET %s
@@ -94,54 +79,23 @@ func (r *Repository) UpdateUser(user UserUpdate) (UserResponse, error) {
 		phone_number, address_id, registration_date`,
 		strings.Join(updateArr, ", "), argsCount,
 	)
-	row := r.db.QueryRow(context.Background(), query, args...)
+	row := r.db.QueryRow(ctx, query, args...)
 
 	userResponse := UserResponse{}
 	err := userResponse.ScanFromRow(row)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		return UserResponse{}, tools.ErrUserNotFound{}
-	}
-
-	return userResponse, nil
+	return userResponse, err
 }
 
-func (r *Repository) DeleteUser(username string) error {
-	query := `
-	WITH deleted_users AS (
-		DELETE FROM users
-		WHERE username = $1
-		RETURNING address_id
-	  )
-	DELETE FROM addresses
-	WHERE address_id IN (SELECT address_id FROM deleted_users)`
-	res, err := r.db.Exec(context.Background(), query, username)
-
-	if res.RowsAffected() == 0 {
-		return tools.ErrUserNotFound{}
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-func (r *Repository) CreateUser(user UserCreate) (UserResponse, error) {
-	tx, err := r.db.BeginTx(context.Background(), pgx.TxOptions{})
+func (r *Repository) CreateUser(ctx context.Context, user UserCreate, hashedPsw string) (UserResponse, error) {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return UserResponse{}, err
 	}
-	defer tx.Rollback(context.Background())
+	defer tx.Rollback(ctx)
 
-	address, err := r.CreateAddress(tx, user)
+	address, err := r.CreateAddress(ctx, tx, user)
 
-	if err != nil {
-		return UserResponse{}, err
-	}
-
-	hashedPsw, err := security.HashPassword(user.Password)
 	if err != nil {
 		return UserResponse{}, err
 	}
@@ -153,7 +107,7 @@ func (r *Repository) CreateUser(user UserCreate) (UserResponse, error) {
         RETURNING
             user_id, username, email, user_type, first_name, last_name,
             phone_number, address_id, registration_date`
-	row := tx.QueryRow(context.Background(), query,
+	row := tx.QueryRow(ctx, query,
 		user.Username, user.Email, hashedPsw, user.UserType, user.FirstName,
 		user.LastName, user.PhoneNumber, address.AddressID)
 
@@ -161,18 +115,34 @@ func (r *Repository) CreateUser(user UserCreate) (UserResponse, error) {
 	err = newUser.ScanFromRow(row)
 
 	if err != nil {
-		var pgErr *pgconn.PgError
-
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return UserResponse{}, tools.ErrUserAlreadyExist{}
-		}
-
 		return UserResponse{}, err
 	}
 
-	if err = tx.Commit(context.Background()); err != nil {
+	if err = tx.Commit(ctx); err != nil {
 		return UserResponse{}, err
 	}
 
-	return newUser, nil
+	return newUser, err
+}
+
+func (r *Repository) DeleteUser(ctx context.Context, username string) error {
+	query := `
+	WITH deleted_users AS (
+		DELETE FROM users
+		WHERE username = $1
+		RETURNING address_id
+	)
+	DELETE FROM addresses
+	WHERE address_id IN (SELECT address_id FROM deleted_users)`
+	res, err := r.db.Exec(ctx, query, username)
+
+	if res.RowsAffected() == 0 {
+		return tools.ErrUserNotFound{}
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return err
 }
