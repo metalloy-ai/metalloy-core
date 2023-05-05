@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -9,14 +10,15 @@ import (
 	"metalloyCore/pkg/response"
 )
 
+type Response interface{}
 type ErrInvalidCredentials struct{}
 type ErrInvalidReqBody struct{}
 type ErrMissingParams struct{}
 type ErrUserNotFound struct{}
 type ErrUserAlreadyExist struct{}
-type ErrFailedUsers struct{ 
-	Users map[string]interface{}
-	FailedUsers []pgx.Row 
+type ErrFailedUsers struct {
+	Users       map[string]interface{}
+	FailedUsers []pgx.Row
 }
 
 func (e ErrInvalidCredentials) Error() string { return "invalid credentials" }
@@ -24,7 +26,9 @@ func (e ErrInvalidReqBody) Error() string     { return "invalid request body" }
 func (e ErrMissingParams) Error() string      { return "missing params" }
 func (e ErrUserNotFound) Error() string       { return "user not found" }
 func (e ErrUserAlreadyExist) Error() string   { return "user already exists" }
-func (e ErrFailedUsers) Error() string        { return fmt.Sprintf("%d users failed to load", len(e.FailedUsers)) }
+func (e ErrFailedUsers) Error() string {
+	return fmt.Sprintf("%d users failed to load", len(e.FailedUsers))
+}
 
 func HandleError(err error, w http.ResponseWriter) bool {
 	switch err := err.(type) {
@@ -53,4 +57,16 @@ func HandleError(err error, w http.ResponseWriter) bool {
 		response.WrapRes(w, body)
 	}
 	return false
+}
+
+func HandleEmptyError(input Response, err error) (interface{}, error) {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return input, ErrUserNotFound{}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return input, nil
 }
