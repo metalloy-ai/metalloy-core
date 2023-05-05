@@ -7,16 +7,16 @@ import (
 )
 
 type Response struct {
-	Code 	int 		`json:"code"`
-	Message string		`json:"message"`
-	Data 	interface{} `json:"body"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Bata    interface{} `json:"body"`
 }
 
-func InitRes(code int, message string, data interface{}) *Response {
+func InitRes(code int, message string, body interface{}) *Response {
 	return &Response{
-		Code: code,
+		Code:    code,
 		Message: message,
-		Data: data,
+		Bata:    body,
 	}
 }
 
