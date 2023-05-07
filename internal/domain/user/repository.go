@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"metalloyCore/internal/config"
 	"metalloyCore/internal/database"
@@ -21,9 +22,9 @@ type UserRepository interface {
 }
 
 type Repository struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 func InitRepository(cfg config.Setting) UserRepository {
-	return &Repository{db: database.GetClient(cfg)}
+	return &Repository{db: database.GetPool(cfg)}
 }

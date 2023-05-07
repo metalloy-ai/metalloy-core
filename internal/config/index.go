@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"runtime"
 	"strconv"
 )
 
@@ -14,6 +15,7 @@ type Setting struct {
 	REDIS_URL  string
 	REDIS_PWS  string
 	Env        string
+	NumCPU     int
 }
 
 func LoadBaseConfig() *Setting {
@@ -27,6 +29,7 @@ func LoadBaseConfig() *Setting {
 	REDIS_URL := os.Getenv("REDIS_URL")
 	REDIS_PWS := os.Getenv("REDIS_PSW")
 	env := os.Getenv("ENV")
+	numCPU := runtime.NumCPU()
 
 	return &Setting{
 		Host:       host,
@@ -37,5 +40,6 @@ func LoadBaseConfig() *Setting {
 		REDIS_URL:  REDIS_URL,
 		REDIS_PWS:  REDIS_PWS,
 		Env:        env,
+		NumCPU:     numCPU,
 	}
 }
