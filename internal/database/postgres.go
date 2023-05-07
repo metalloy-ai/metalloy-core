@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"log"
-	"metalloyCore/internal/config"
 
 	"github.com/jackc/pgx/v5"
+
+	"metalloyCore/internal/config"
 )
 
 func GetClient(cfg config.Setting) *pgx.Conn {

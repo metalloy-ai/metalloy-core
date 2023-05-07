@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/uptrace/bunrouter"
+	"github.com/uptrace/bunrouter/extra/reqlog"
+
 	"metalloyCore/internal/api/routes"
 	"metalloyCore/internal/config"
 	"metalloyCore/internal/security/middleware"
-
-	"github.com/uptrace/bunrouter"
-	"github.com/uptrace/bunrouter/extra/reqlog"
 )
 
 type Server struct {
@@ -38,9 +38,8 @@ func (s *Server) Run() {
 }
 
 func (s *Server) LoadServerConfig() {
-	cors := middleware.CorsMiddleware
 	s.router.
-		Use(cors).
+		Use(middleware.CorsMiddleware).
 		Compat().
 		WithGroup("/api/v1", routes.V1Routes(s.config))
 }
