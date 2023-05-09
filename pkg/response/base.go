@@ -9,14 +9,14 @@ import (
 type Response struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
-	Bata    interface{} `json:"body"`
+	Body    interface{} `json:"body"`
 }
 
 func InitRes(code int, message string, body interface{}) *Response {
 	return &Response{
 		Code:    code,
 		Message: message,
-		Bata:    body,
+		Body:    body,
 	}
 }
 

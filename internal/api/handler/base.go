@@ -9,7 +9,7 @@ import (
 )
 
 func DefaultHandler(w http.ResponseWriter, req *http.Request) {
-	body := *response.InitRes(http.StatusOK, "Welcome to Logiflow Core", nil)
+	body := *response.InitRes(http.StatusOK, "Welcome to Metalloy AI", nil)
 	response.WrapRes(w, &body)
 }
 
