@@ -11,7 +11,7 @@ import (
 )
 
 type UserRepository interface {
-	GetAllUser(ctx context.Context) ([]UserResponse, []pgx.Row)
+	GetAllUser(ctx context.Context, username string) ([]UserResponse, []pgx.Row)
 	GetFullUser(ctx context.Context, username string) (FullUserResponse, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (UserResponse, error)

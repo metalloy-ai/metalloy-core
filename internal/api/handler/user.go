@@ -26,10 +26,9 @@ func (uc *UserController) EmptyParamHandler(w http.ResponseWriter, req *http.Req
 
 func (uc *UserController) AllUserHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	users, err := uc.Service.GetAllUser(ctx)
-	res := map[string]interface{}{
-		"users": users,
-	}
+	username := req.URL.Query().Get("username")
+	users, err := uc.Service.GetAllUser(ctx, username)
+	res := map[string]interface{}{"users": users}
 
 	if err != nil {
 		if errors.Is(err, tools.ErrFailedUsers{}) {

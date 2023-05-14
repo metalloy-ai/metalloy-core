@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	GetAllUser(ctx context.Context) ([]UserResponse, error)
+	GetAllUser(ctx context.Context, username string) ([]UserResponse, error)
 	GetFullUser(ctx context.Context, username string) (FullUserResponse, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	UpdateUser(ctx context.Context, user UserUpdate) (UserResponse, error)
@@ -29,8 +29,8 @@ func InitUserService(repo UserRepository) UserService {
 	return &Service{Repo: repo}
 }
 
-func (us *Service) GetAllUser(ctx context.Context) ([]UserResponse, error) {
-	users, failedUsers := us.Repo.GetAllUser(ctx)
+func (us *Service) GetAllUser(ctx context.Context, username string) ([]UserResponse, error) {
+	users, failedUsers := us.Repo.GetAllUser(ctx, username)
 
 	if len(failedUsers) > 0 {
 		return nil, tools.ErrFailedUsers{FailedUsers: failedUsers}
