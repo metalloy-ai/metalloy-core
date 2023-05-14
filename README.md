@@ -1,19 +1,16 @@
-# metalloy-core
-
 ## Overview
 
 metalloy core is the backbone service for handling all users and the authentication in the metalloy ai logistics platform.
 
 ## Table of Contents
 
-- [metalloy-core](#metalloy-core)
-  - [Overview](#overview)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Running the service](#running-the-service)
-    - [Running the tests](#running-the-tests)
-  - [Documentation](#documentation)
+- [Overview](#overview)
+- [Table of Contents](#table-of-contents)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Running the service](#running-the-service)
+  - [Running the tests](#running-the-tests)
+- [Documentation](#documentation)
 
 ---
 
