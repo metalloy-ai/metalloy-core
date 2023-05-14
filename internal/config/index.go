@@ -7,15 +7,17 @@ import (
 )
 
 type Setting struct {
-	Host       string
-	Port       int
-	ApiVersion string
-	Version	   string
-	PG_URL	   string
-	REDIS_URL  string
-	REDIS_PWS  string
-	Env        string
-	NumCPU     int
+	Host          string
+	Port          int
+	ApiVersion    string
+	Version       string
+	PG_URL        string
+	REDIS_URL     string
+	REDIS_PWS     string
+	Env           string
+	NumCPU        int
+	TokenDuration int
+	JwtKey        string
 }
 
 func LoadBaseConfig() *Setting {
@@ -30,6 +32,8 @@ func LoadBaseConfig() *Setting {
 	REDIS_PWS := os.Getenv("REDIS_PSW")
 	env := os.Getenv("ENV")
 	numCPU := runtime.NumCPU()
+	tokenDuration, _ := strconv.Atoi(os.Getenv("TOKEN_DURATION"))
+	jwtKey := os.Getenv("JWT_KEY")
 
 	return &Setting{
 		Host:       host,
@@ -41,5 +45,7 @@ func LoadBaseConfig() *Setting {
 		REDIS_PWS:  REDIS_PWS,
 		Env:        env,
 		NumCPU:     numCPU,
+		TokenDuration: tokenDuration,
+		JwtKey: jwtKey,
 	}
 }
