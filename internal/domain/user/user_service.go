@@ -11,14 +11,14 @@ import (
 )
 
 type UserService interface {
-	GetAllUser(ctx context.Context, username string) ([]UserResponse, error)
-	GetFullUser(ctx context.Context, username string) (FullUserResponse, error)
-	GetUser(ctx context.Context, username string) (User, error)
-	UpdateUser(ctx context.Context, user UserUpdate) (UserResponse, error)
-	CreateUser(ctx context.Context, newUser UserCreate) (UserResponse, error)
+	GetAllUser(ctx context.Context, username string) ([]*UserResponse, error)
+	GetFullUser(ctx context.Context, username string) (*FullUserResponse, error)
+	GetUser(ctx context.Context, username string) (*User, error)
+	UpdateUser(ctx context.Context, user *UserUpdate) (*UserResponse, error)
+	CreateUser(ctx context.Context, newUser *UserCreate) (*UserResponse, error)
 	DeleteUser(ctx context.Context, username string) error
-	GetAddress(ctx context.Context, username string) (Address, error)
-	UpdateAddress(ctx context.Context, address AddressBase, username string) (Address, error)
+	GetAddress(ctx context.Context, username string) (*Address, error)
+	UpdateAddress(ctx context.Context, address *AddressBase, username string) (*Address, error)
 }
 
 type Service struct {
@@ -29,7 +29,7 @@ func InitUserService(repo UserRepository) UserService {
 	return &Service{Repo: repo}
 }
 
-func (us *Service) GetAllUser(ctx context.Context, username string) ([]UserResponse, error) {
+func (us *Service) GetAllUser(ctx context.Context, username string) ([]*UserResponse, error) {
 	users, failedUsers := us.Repo.GetAllUser(ctx, username)
 
 	if len(failedUsers) > 0 {
@@ -39,21 +39,21 @@ func (us *Service) GetAllUser(ctx context.Context, username string) ([]UserRespo
 	return users, nil
 }
 
-func (us *Service) GetFullUser(ctx context.Context, username string) (FullUserResponse, error) {
+func (us *Service) GetFullUser(ctx context.Context, username string) (*FullUserResponse, error) {
 	user, err := us.Repo.GetFullUser(ctx, username)
 
 	handledUser, err := tools.HandleEmptyError(user, err)
-	return handledUser.(FullUserResponse), err
+	return handledUser.(*FullUserResponse), err
 }
 
-func (us *Service) GetUser(ctx context.Context, username string) (User, error) {
+func (us *Service) GetUser(ctx context.Context, username string) (*User, error) {
 	user, err := us.Repo.GetUser(ctx, username)
 
 	handledUser, err := tools.HandleEmptyError(user, err)
-	return handledUser.(User), err
+	return handledUser.(*User), err
 }
 
-func (us *Service) UpdateUser(ctx context.Context, user UserUpdate) (UserResponse, error) {
+func (us *Service) UpdateUser(ctx context.Context, user *UserUpdate) (*UserResponse, error) {
 	fieldMap := map[string]interface{}{
 		"email":        user.Email,
 		"first_name":   user.FirstName,
@@ -64,13 +64,13 @@ func (us *Service) UpdateUser(ctx context.Context, user UserUpdate) (UserRespons
 	updatedUser, err := us.Repo.UpdateUser(ctx, updateArr, args, argsCount)
 
 	handledUpdatedUser, err := tools.HandleEmptyError(updatedUser, err)
-	return handledUpdatedUser.(UserResponse), err
+	return handledUpdatedUser.(*UserResponse), err
 }
 
-func (us *Service) CreateUser(ctx context.Context, newUser UserCreate) (UserResponse, error) {
+func (us *Service) CreateUser(ctx context.Context, newUser *UserCreate) (*UserResponse, error) {
 	hashedPsw, err := security.HashPassword(newUser.Password)
 	if err != nil {
-		return UserResponse{}, err
+		return nil, err
 	}
 
 	user, err := us.Repo.CreateUser(ctx, newUser, hashedPsw)
@@ -79,10 +79,10 @@ func (us *Service) CreateUser(ctx context.Context, newUser UserCreate) (UserResp
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return UserResponse{}, tools.ErrUserAlreadyExist{}
+			return nil, tools.ErrUserAlreadyExist{}
 		}
 
-		return UserResponse{}, err
+		return nil, err
 	}
 
 	return user, nil

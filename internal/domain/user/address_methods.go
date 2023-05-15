@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r *Repository) GetAddress(ctx context.Context, username string) (Address, error) {
+func (r *Repository) GetAddress(ctx context.Context, username string) (*Address, error) {
 	query := `
 	SELECT a.* 
 	FROM addresses as a
@@ -16,13 +16,13 @@ func (r *Repository) GetAddress(ctx context.Context, username string) (Address, 
 	WHERE u.username = $1`
 	row := r.db.QueryRow(ctx, query, username)
 
-	address := Address{}
+	address := &Address{}
 	err := address.ScanFromRow(row)
 
 	return address, err
 }
 
-func (r *Repository) CreateAddress(ctx context.Context, tx pgx.Tx, address UserCreate) (Address, error) {
+func (r *Repository) CreateAddress(ctx context.Context, tx pgx.Tx, address UserCreate) (*Address, error) {
 	query := `
 	INSERT INTO addresses (
 		street_address, city, state, country, postal_code
@@ -32,13 +32,13 @@ func (r *Repository) CreateAddress(ctx context.Context, tx pgx.Tx, address UserC
 	row := tx.QueryRow(ctx, query,
 		address.StreetAddress, address.City, address.State, address.Country, address.PostalCode)
 
-	newAddress := Address{}
+	newAddress := &Address{}
 	err := newAddress.ScanFromRow(row)
 
 	return newAddress, err
 }
 
-func (r *Repository) UpdateAddress(ctx context.Context, updateArr []string, args []interface{}, argsCount int, username string) (Address, error) {
+func (r *Repository) UpdateAddress(ctx context.Context, updateArr []string, args []interface{}, argsCount int, username string) (*Address, error) {
 	query := fmt.Sprintf(`
 	UPDATE addresses
 	SET %s
@@ -49,7 +49,7 @@ func (r *Repository) UpdateAddress(ctx context.Context, updateArr []string, args
 	) returning *`, strings.Join(updateArr, ", "), argsCount)
 	row := r.db.QueryRow(ctx, query, args...)
 
-	newAddress := Address{}
+	newAddress := &Address{}
 	err := newAddress.ScanFromRow(row)
 
 	return newAddress, err

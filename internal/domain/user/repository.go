@@ -11,14 +11,14 @@ import (
 )
 
 type UserRepository interface {
-	GetAllUser(ctx context.Context, username string) ([]UserResponse, []pgx.Row)
-	GetFullUser(ctx context.Context, username string) (FullUserResponse, error)
-	GetUser(ctx context.Context, username string) (User, error)
-	UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (UserResponse, error)
-	CreateUser(ctx context.Context, newUser UserCreate, hashedPsw string) (UserResponse, error)
+	GetAllUser(ctx context.Context, username string) ([]*UserResponse, []pgx.Row)
+	GetFullUser(ctx context.Context, username string) (*FullUserResponse, error)
+	GetUser(ctx context.Context, username string) (*User, error)
+	UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (*UserResponse, error)
+	CreateUser(ctx context.Context, newUser *UserCreate, hashedPsw string) (*UserResponse, error)
 	DeleteUser(ctx context.Context, username string) error
-	GetAddress(ctx context.Context, username string) (Address, error)
-	UpdateAddress(ctx context.Context, updateArr []string, args []interface{}, argsCount int, username string) (Address, error)
+	GetAddress(ctx context.Context, username string) (*Address, error)
+	UpdateAddress(ctx context.Context, updateArr []string, args []interface{}, argsCount int, username string) (*Address, error)
 }
 
 type Repository struct {

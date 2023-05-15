@@ -51,7 +51,7 @@ func (uc *UserController) UserHandler(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	body := *response.InitRes(http.StatusOK, "", returnedUser)
+	body := *response.InitRes(http.StatusOK, "", *returnedUser)
 	response.WrapRes(w, &body)
 }
 
@@ -65,12 +65,12 @@ func (uc *UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	returnedUser, err := uc.Service.UpdateUser(ctx, user)
+	returnedUser, err := uc.Service.UpdateUser(ctx, &user)
 	if !tools.HandleError(err, w) {
 		return
 	}
 
-	body := *response.InitRes(http.StatusOK, "user updated success", returnedUser)
+	body := *response.InitRes(http.StatusOK, "user updated success", *returnedUser)
 	response.WrapRes(w, &body)
 }
 
@@ -96,14 +96,14 @@ func (uc *UserController) GetAddressHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	body := *response.InitRes(http.StatusOK, "", returnedAddress)
+	body := *response.InitRes(http.StatusOK, "", *returnedAddress)
 	response.WrapRes(w, &body)
 }
 
 func (uc *UserController) UpdateAddressHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	username := bunrouter.ParamsFromContext(ctx).ByName("username")
-	address := user.AddressBase{}
+	address := &user.AddressBase{}
 
 	err := address.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
@@ -115,6 +115,6 @@ func (uc *UserController) UpdateAddressHandler(w http.ResponseWriter, req *http.
 		return
 	}
 
-	body := *response.InitRes(http.StatusOK, "address updated success", returnedAddress)
+	body := *response.InitRes(http.StatusOK, "address updated success", *returnedAddress)
 	response.WrapRes(w, &body)
 }

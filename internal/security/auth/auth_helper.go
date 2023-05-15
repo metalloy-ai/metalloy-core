@@ -7,7 +7,7 @@ import (
 	"metalloyCore/tools"
 )
 
-func (lq *LoginReq) DecodeBody(data io.ReadCloser) error {
+func (lq *LoginRequest) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(lq)
 	if err != nil {
 		return tools.ErrInvalidReqBody{}
@@ -15,7 +15,7 @@ func (lq *LoginReq) DecodeBody(data io.ReadCloser) error {
 	return nil
 }
 
-func (lq *LoginReq) Validate() error {
+func (lq *LoginRequest) Validate() error {
 	if lq.Username == "" || lq.Password == "" {
 		return tools.ErrMissingParams{}
 	}

@@ -10,7 +10,7 @@ import (
 	"metalloyCore/tools"
 )
 
-func (r *Repository) GetAllUser(ctx context.Context, username string) ([]UserResponse, []pgx.Row) {
+func (r *Repository) GetAllUser(ctx context.Context, username string) ([]*UserResponse, []pgx.Row) {
 	query := `
 	SELECT 
 		user_id, username, email, user_type, first_name, last_name, 
@@ -22,15 +22,15 @@ func (r *Repository) GetAllUser(ctx context.Context, username string) ([]UserRes
 	rows, err := r.db.Query(ctx, query, username)
 
 	if err != nil {
-		return []UserResponse{}, nil
+		return nil, nil
 	}
 	defer rows.Close()
 
-	users := []UserResponse{}
+	users := []*UserResponse{}
 	failedUsers := []pgx.Row{}
 
 	for rows.Next() {
-		user := UserResponse{}
+		user := &UserResponse{}
 		if err := user.ScanFromRow(rows); err != nil {
 			failedUsers = append(failedUsers, rows)
 		} else {
@@ -41,7 +41,7 @@ func (r *Repository) GetAllUser(ctx context.Context, username string) ([]UserRes
 	return users, failedUsers
 }
 
-func (r *Repository) GetFullUser(ctx context.Context, username string) (FullUserResponse, error) {
+func (r *Repository) GetFullUser(ctx context.Context, username string) (*FullUserResponse, error) {
 	query := `
 	SELECT 
 		u.user_id, u.username, u.email, u.user_type, u.first_name, u.last_name, 
@@ -52,13 +52,13 @@ func (r *Repository) GetFullUser(ctx context.Context, username string) (FullUser
 	WHERE u.username = $1`
 	row := r.db.QueryRow(ctx, query, username)
 
-	user := FullUserResponse{}
+	user := &FullUserResponse{}
 	err := user.ScanFromRow(row)
 
 	return user, err
 }
 
-func (r *Repository) GetUser(ctx context.Context, username string) (User, error) {
+func (r *Repository) GetUser(ctx context.Context, username string) (*User, error) {
 	query := `
 	SELECT 
 		user_id, username, email, user_type, first_name, last_name,
@@ -66,13 +66,13 @@ func (r *Repository) GetUser(ctx context.Context, username string) (User, error)
 	FROM users WHERE username = $1`
 	row := r.db.QueryRow(ctx, query, username)
 
-	user := User{}
+	user := &User{}
 	err := user.ScanFromRow(row)
 
 	return user, err
 }
 
-func (r *Repository) UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (UserResponse, error) {
+func (r *Repository) UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (*UserResponse, error) {
 	query := fmt.Sprintf(`
 	UPDATE users
 	SET %s
@@ -84,23 +84,23 @@ func (r *Repository) UpdateUser(ctx context.Context, updateArr []string, args []
 	)
 	row := r.db.QueryRow(ctx, query, args...)
 
-	userResponse := UserResponse{}
+	userResponse := &UserResponse{}
 	err := userResponse.ScanFromRow(row)
 
 	return userResponse, err
 }
 
-func (r *Repository) CreateUser(ctx context.Context, user UserCreate, hashedPsw string) (UserResponse, error) {
+func (r *Repository) CreateUser(ctx context.Context, user *UserCreate, hashedPsw string) (*UserResponse, error) {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		return UserResponse{}, err
+		return nil, err
 	}
 	defer tx.Rollback(ctx)
 
-	address, err := r.CreateAddress(ctx, tx, user)
+	address, err := r.CreateAddress(ctx, tx, *user)
 
 	if err != nil {
-		return UserResponse{}, err
+		return nil, err
 	}
 
 	query := `
@@ -114,15 +114,15 @@ func (r *Repository) CreateUser(ctx context.Context, user UserCreate, hashedPsw 
 		user.Username, user.Email, hashedPsw, user.UserType, user.FirstName,
 		user.LastName, user.PhoneNumber, address.AddressID)
 
-	newUser := UserResponse{}
+	newUser := &UserResponse{}
 	err = newUser.ScanFromRow(row)
 
 	if err != nil {
-		return UserResponse{}, err
+		return nil, err
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		return UserResponse{}, err
+		return nil, err
 	}
 
 	return newUser, err
