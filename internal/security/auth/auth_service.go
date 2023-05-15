@@ -5,36 +5,45 @@ import (
 
 	"metalloyCore/internal/domain/user"
 	"metalloyCore/internal/security"
+	"metalloyCore/internal/security/jwt"
 	"metalloyCore/tools"
 )
 
 type AuthService struct {
-	Service user.UserService
+	Service    user.UserService
+	JWTManager *jwt.JWThandler
 }
 
-func InitAuthService(service user.UserService) *AuthService {
-	return &AuthService{Service: service}
+func InitAuthService(service user.UserService, jwtHandler *jwt.JWThandler) *AuthService {
+	return &AuthService{Service: service, JWTManager: jwtHandler}
 }
 
-func (as *AuthService) Login(ctx context.Context, username string, password string) (user.UserResponse, error) {
+func (as *AuthService) Login(ctx context.Context, username string, password string) (*LoginResponse, error) {
 	User, err := as.Service.GetUser(ctx, username)
 
 	if err != nil {
-		return user.UserResponse{}, tools.ErrUserNotFound{}
+		return nil, tools.ErrUserNotFound{}
 	}
 
 	if security.ValidatePassword(&User.Password, password) {
-		return *User.ToReponse(), nil
+		token, err := as.JWTManager.GenerateToken(User.UserID, User.Username, User.UserType)
+		userRes := User.ToReponse()
+
+		if err != nil {
+			return &LoginResponse{userRes, ""}, err
+		}
+
+		return &LoginResponse{userRes, token}, nil
 	}
 
-	return user.UserResponse{}, tools.ErrInvalidCredentials{}
+	return nil, tools.ErrInvalidCredentials{}
 }
 
-func (as *AuthService) Register(ctx context.Context, newUser user.UserCreate) (user.UserResponse, error) {
+func (as *AuthService) Register(ctx context.Context, newUser *user.UserCreate) (*user.UserResponse, error) {
 	User, err := as.Service.CreateUser(ctx, newUser)
 
 	if err != nil {
-		return user.UserResponse{}, err
+		return nil, err
 	}
 
 	return User, nil

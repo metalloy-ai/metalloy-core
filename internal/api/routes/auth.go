@@ -7,12 +7,14 @@ import (
 	"metalloyCore/internal/config"
 	"metalloyCore/internal/domain/user"
 	"metalloyCore/internal/security/auth"
+	"metalloyCore/internal/security/jwt"
 )
 
 func AuthRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 	repository := user.InitRepository(cfg)
 	userService := user.InitUserService(repository)
-	service := auth.InitAuthService(userService)
+	jwtHandler := jwt.InitJWTHandler(cfg)
+	service := auth.InitAuthService(userService, jwtHandler)
 	controller := handler.InitAuthController(*service)
 	return func(g *bunrouter.CompatGroup) {
 		g.POST("/login", controller.LoginHandler)

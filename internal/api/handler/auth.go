@@ -18,7 +18,7 @@ func InitAuthController(svc auth.AuthService) *AuthController {
 }
 
 func (ac *AuthController) LoginHandler(w http.ResponseWriter, req *http.Request) {
-	loginBody := auth.LoginReq{}
+	loginBody := auth.LoginRequest{}
 
 	err := loginBody.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
@@ -36,12 +36,13 @@ func (ac *AuthController) LoginHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	body := *response.InitRes(http.StatusOK, "", user)
+	body := *response.InitRes(http.StatusOK, "", nil)
+	w.Header().Set("Authorization", "Bearer "+user.Token)
 	response.WrapRes(w, &body)
 }
 
 func (ac *AuthController) RegisterHandler(w http.ResponseWriter, req *http.Request) {
-	registerBody := user.UserCreate{}
+	registerBody := &user.UserCreate{}
 
 	err := registerBody.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
@@ -59,7 +60,7 @@ func (ac *AuthController) RegisterHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	body := *response.InitRes(http.StatusCreated, "", user)
+	body := *response.InitRes(http.StatusCreated, "", *user)
 	response.WrapRes(w, &body)
 }
 
