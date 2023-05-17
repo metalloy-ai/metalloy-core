@@ -16,6 +16,8 @@ type ErrInvalidReqBody struct{}
 type ErrMissingParams struct{}
 type ErrUserNotFound struct{}
 type ErrUserAlreadyExist struct{}
+type ErrParseClaims struct{}
+type ErrExpiredToken struct{}
 type ErrFailedUsers struct {
 	Users       map[string]interface{}
 	FailedUsers []pgx.Row
@@ -29,6 +31,8 @@ func (e ErrUserAlreadyExist) Error() string   { return "user already exists" }
 func (e ErrFailedUsers) Error() string {
 	return fmt.Sprintf("%d users failed to load", len(e.FailedUsers))
 }
+func (e ErrParseClaims) Error() string { return "failed to parse claims" }
+func (e ErrExpiredToken) Error() string { return "token has expired" }
 
 func HandleError(err error, w http.ResponseWriter) bool {
 	switch err := err.(type) {
@@ -49,6 +53,12 @@ func HandleError(err error, w http.ResponseWriter) bool {
 		response.WrapRes(w, body)
 	case ErrFailedUsers:
 		body := response.InitRes(http.StatusInternalServerError, err.Error(), err.Users)
+		response.WrapRes(w, body)
+	case ErrParseClaims:
+		body := response.InitRes(http.StatusBadRequest, "Internal server error: Failed to parse claims", nil)
+		response.WrapRes(w, body)
+	case ErrExpiredToken:
+		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: Token has expired", nil)
 		response.WrapRes(w, body)
 	case nil:
 		return true
