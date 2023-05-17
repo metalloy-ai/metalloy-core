@@ -34,7 +34,7 @@ HOST="localhost"
 ## User Routes
 
 ```bash
-    - [GET]   /users
+    - [GET]   /users?username={optional}
     - [GET]   /users/user/:username
     - [PATCH] /users/user/:username
     - [DEL]   /users/user/:username
@@ -75,6 +75,8 @@ HOST="localhost"
 ```bash
     - [POST] /auth/login
     - [POST] /auth/register
+    - [POST] /auth/forgot-password
+    headers - Authorization: Bearer {token}
 ```
 
 ### Login Body
