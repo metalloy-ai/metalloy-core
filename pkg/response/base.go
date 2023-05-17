@@ -16,7 +16,7 @@ func InitRes(code int, message string, body interface{}) *Response {
 	return &Response{
 		Code:    code,
 		Message: message,
-		Body:    body,
+		Body:    &body,
 	}
 }
 
@@ -24,4 +24,10 @@ func WrapRes(w http.ResponseWriter, body *Response) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(body.Code)
 	_ = bunrouter.JSON(w, body)
+}
+
+func InitAuthRes(w http.ResponseWriter, status int, token string) {
+	body := *InitRes(status, "", nil)
+	w.Header().Set("Authorization", "Bearer " + token)
+	WrapRes(w, &body)
 }
