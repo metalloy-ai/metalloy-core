@@ -38,7 +38,7 @@ func (uc *UserController) AllUserHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	body := *response.InitRes(http.StatusOK, "", res)
+	body := *response.InitRes(http.StatusOK, "", &res)
 	response.WrapRes(w, &body)
 }
 
