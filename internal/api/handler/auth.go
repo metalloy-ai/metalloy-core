@@ -30,15 +30,12 @@ func (ac *AuthController) LoginHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	user, err := ac.Svc.Login(req.Context(), loginBody.Username, loginBody.Password)
-
+	auth, err := ac.Svc.Login(req.Context(), loginBody.Username, loginBody.Password)
 	if !tools.HandleError(err, w) {
 		return
 	}
 
-	body := *response.InitRes(http.StatusOK, "", nil)
-	w.Header().Set("Authorization", "Bearer "+user.Token)
-	response.WrapRes(w, &body)
+	response.InitAuthRes(w, http.StatusOK, auth.Token)
 }
 
 func (ac *AuthController) RegisterHandler(w http.ResponseWriter, req *http.Request) {
@@ -54,14 +51,12 @@ func (ac *AuthController) RegisterHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	user, err := ac.Svc.Register(req.Context(), registerBody)
-
+	auth, err := ac.Svc.Register(req.Context(), registerBody)
 	if !tools.HandleError(err, w) {
 		return
 	}
 
-	body := *response.InitRes(http.StatusCreated, "", *user)
-	response.WrapRes(w, &body)
+	response.InitAuthRes(w, http.StatusCreated, auth.Token)
 }
 
 func (ac *AuthController) ForgetPasswordHandler(w http.ResponseWriter, req *http.Request) {

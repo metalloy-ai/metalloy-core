@@ -1,7 +1,9 @@
 package jwt
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -9,6 +11,7 @@ import (
 
 	"metalloyCore/internal/config"
 	"metalloyCore/internal/domain/user"
+	"metalloyCore/tools"
 )
 
 type JWThandler struct {
@@ -41,10 +44,50 @@ func (j *JWThandler) GenerateToken(userID uuid.UUID, username string, role user.
 	return token.SignedString([]byte(j.SecretKey))
 }
 
+func (j *JWThandler) RefreshToken(tokenInput string) (string, error) {
+	claims, err := j.ValidateToken(tokenInput)
+	if err != nil {
+		return "", err
+	}
+
+	return j.GenerateToken(claims.UserID, claims.Username, claims.Role)
+}
+
 func (j *JWThandler) ValidateToken(tokenInput string) (*Claims, error) {
-	return nil, nil
+	token, err := jwt.ParseWithClaims(
+		tokenInput, 
+		&Claims{}, 
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(j.SecretKey), nil
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return nil, tools.ErrParseClaims{}
+	}
+
+	if claims.ExpiresAt < time.Now().Unix() {
+		return nil, tools.ErrExpiredToken{}
+	}
+
+	return claims, nil
 }
 
 func (j *JWThandler) ValidateRequest(r *http.Request) (*Claims, error) {
-	return nil, nil
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return nil, errors.New("no authorization header provided")
+	}
+
+	header := strings.Split(authHeader, " ")
+	if len(header) != 2 || strings.ToLower(header[0]) != "bearer" {
+		return nil, errors.New("authorization header format must be Bearer {token}")
+	}
+
+	return j.ValidateToken(header[1])
 }
