@@ -19,6 +19,6 @@ func AuthRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 	return func(g *bunrouter.CompatGroup) {
 		g.POST("/login", controller.LoginHandler)
 		g.POST("/register", controller.RegisterHandler)
-		g.POST("/forget-password", controller.ForgetPasswordHandler)
+		g.POST("/forgotPassword", controller.ForgotPasswordHandler)
 	}
 }

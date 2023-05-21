@@ -59,7 +59,7 @@ func (ac *AuthController) RegisterHandler(w http.ResponseWriter, req *http.Reque
 	response.InitAuthRes(w, http.StatusCreated, auth.Token)
 }
 
-func (ac *AuthController) ForgetPasswordHandler(w http.ResponseWriter, req *http.Request) {
+func (ac *AuthController) ForgotPasswordHandler(w http.ResponseWriter, req *http.Request) {
 	body := *response.InitRes(http.StatusOK, "", nil)
 	response.WrapRes(w, &body)
 }

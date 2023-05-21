@@ -27,7 +27,7 @@ func (a *Address) ScanFromRow(row pgx.Row) error {
 func (a *AddressBase) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(a)
 	if err != nil {
-		return tools.ErrInvalidReqBody{}
+		return tools.ErrInvalidReq{}
 	}
 	return nil
 }

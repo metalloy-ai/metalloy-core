@@ -69,7 +69,7 @@ func (fr *FullUserResponse) ScanFromRow(row pgx.Row) error {
 func (u *UserCreate) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(u)
 	if err != nil {
-		return tools.ErrInvalidReqBody{}
+		return tools.ErrInvalidReq{}
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func InitUserUpdate(username string) *UserUpdate {
 func (u *UserUpdate) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(u)
 	if err != nil {
-		return tools.ErrInvalidReqBody{}
+		return tools.ErrInvalidReq{}
 	}
 	return nil
 }

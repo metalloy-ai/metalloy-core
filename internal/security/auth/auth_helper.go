@@ -10,7 +10,7 @@ import (
 func (lq *LoginRequest) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(lq)
 	if err != nil {
-		return tools.ErrInvalidReqBody{}
+		return tools.ErrInvalidReq{}
 	}
 	return nil
 }
