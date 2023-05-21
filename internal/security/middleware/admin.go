@@ -1,13 +1,19 @@
 package middleware
 
 import (
+	"metalloyCore/pkg/validator"
+	"metalloyCore/tools"
 	"net/http"
-
-	"github.com/uptrace/bunrouter"
 )
 
-func AdminMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
-	return func(w http.ResponseWriter, req bunrouter.Request) error {
-		return next(w, req)
+func Admin(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := validator.ValidatePayloadAdmin(r)
+
+		if !tools.HandleError(err, w) {
+			return
+		}
+
+		next(w, r)
 	}
 }
