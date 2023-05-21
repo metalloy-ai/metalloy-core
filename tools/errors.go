@@ -25,6 +25,7 @@ type ErrFailedUsers struct {
 type ErrNoAuthHeader struct{}
 type ErrInvalidAuthHeader struct{}
 type ErrForbiddenAccess struct{}
+type ErrAdminAccess struct{}
 
 func (e ErrInvalidCredentials) Error() string { return "invalid credentials" }
 func (e ErrInvalidReq) Error() string         { return "invalid request" }
@@ -39,6 +40,7 @@ func (e ErrExpiredToken) Error() string      { return "token has expired" }
 func (e ErrNoAuthHeader) Error() string      { return "no auth header" }
 func (e ErrInvalidAuthHeader) Error() string { return "invalid auth header" }
 func (e ErrForbiddenAccess) Error() string   { return "forbidden access" }
+func (e ErrAdminAccess) Error() string       { return "admin access" }
 
 func HandleError(err error, w http.ResponseWriter) bool {
 	switch err := err.(type) {
@@ -74,6 +76,9 @@ func HandleError(err error, w http.ResponseWriter) bool {
 		response.WrapRes(w, body)
 	case ErrForbiddenAccess:
 		body := response.InitRes(http.StatusForbidden, "Forbidden: Access to resources is forbidden", nil)
+		response.WrapRes(w, body)
+	case ErrAdminAccess:
+		body := response.InitRes(http.StatusForbidden, "Forbidden: Admin access is forbidden", nil)
 		response.WrapRes(w, body)
 	case nil:
 		return true
