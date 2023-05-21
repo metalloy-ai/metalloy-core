@@ -11,9 +11,6 @@ import (
 	"metalloyCore/tools"
 )
 
-type contextKey string
-const CtxPayloadKey contextKey = "userPayload"
-
 func Authorization(cfg config.Setting) bunrouter.MiddlewareFunc {
 	jwtHandler := jwt.InitJWTHandler(cfg)
 	return func(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
@@ -24,7 +21,7 @@ func Authorization(cfg config.Setting) bunrouter.MiddlewareFunc {
 				return nil
 			}
 
-			ctx := context.WithValue(req.Context(), CtxPayloadKey, &claims.UserPayload)
+			ctx := context.WithValue(req.Context(), tools.CtxPayloadKey, &claims.UserPayload)
 			req = req.WithContext(ctx)
 
 			return next(w, req)
