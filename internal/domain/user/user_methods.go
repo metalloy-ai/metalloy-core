@@ -10,7 +10,7 @@ import (
 	"metalloyCore/tools"
 )
 
-func (r *Repository) GetAllUser(ctx context.Context, username string) ([]*UserResponse, []pgx.Row) {
+func (r *Repository) GetAllUser(ctx context.Context, pageIdx string, pageSize int) ([]*UserResponse, []pgx.Row) {
 	query := `
 	SELECT 
 		user_id, username, email, user_type, first_name, last_name, 
@@ -18,8 +18,8 @@ func (r *Repository) GetAllUser(ctx context.Context, username string) ([]*UserRe
 	FROM users
 	WHERE ($1 = '' OR username > $1)
 	ORDER BY username
-	LIMIT 10;`
-	rows, err := r.db.Query(ctx, query, username)
+	LIMIT $2`
+	rows, err := r.db.Query(ctx, query, pageIdx, pageSize)
 
 	if err != nil {
 		return nil, nil

@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgconn"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type UserService interface {
-	GetAllUser(ctx context.Context, username string) ([]*UserResponse, error)
+	GetAllUser(ctx context.Context, pageIdx string, sizeRaw string) ([]*UserResponse, error)
 	GetFullUser(ctx context.Context, username string) (*FullUserResponse, error)
 	GetUser(ctx context.Context, username string) (*User, error)
 	UpdateUser(ctx context.Context, user *UserUpdate) (*UserResponse, error)
@@ -29,8 +30,13 @@ func InitUserService(repo UserRepository) UserService {
 	return &Service{Repo: repo}
 }
 
-func (us *Service) GetAllUser(ctx context.Context, username string) ([]*UserResponse, error) {
-	users, failedUsers := us.Repo.GetAllUser(ctx, username)
+func (us *Service) GetAllUser(ctx context.Context, pageIdx string, sizeRaw string) ([]*UserResponse, error) {
+	pageSize, err := strconv.Atoi(sizeRaw)
+	if err != nil {
+		pageSize = 10
+	}
+
+	users, failedUsers := us.Repo.GetAllUser(ctx, pageIdx, pageSize)
 
 	if len(failedUsers) > 0 {
 		return nil, tools.ErrFailedUsers{FailedUsers: failedUsers}
