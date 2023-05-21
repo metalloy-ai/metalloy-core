@@ -22,6 +22,9 @@ type ErrFailedUsers struct {
 	Users       map[string]interface{}
 	FailedUsers []pgx.Row
 }
+type ErrNoAuthHeader struct{}
+type ErrInvalidAuthHeader struct{}
+type ErrForbiddenAccess struct{}
 
 func (e ErrInvalidCredentials) Error() string { return "invalid credentials" }
 func (e ErrInvalidReq) Error() string         { return "invalid request" }
@@ -31,8 +34,11 @@ func (e ErrUserAlreadyExist) Error() string   { return "user already exists" }
 func (e ErrFailedUsers) Error() string {
 	return fmt.Sprintf("%d users failed to load", len(e.FailedUsers))
 }
-func (e ErrParseClaims) Error() string  { return "failed to parse claims" }
-func (e ErrExpiredToken) Error() string { return "token has expired" }
+func (e ErrParseClaims) Error() string       { return "failed to parse claims" }
+func (e ErrExpiredToken) Error() string      { return "token has expired" }
+func (e ErrNoAuthHeader) Error() string      { return "no auth header" }
+func (e ErrInvalidAuthHeader) Error() string { return "invalid auth header" }
+func (e ErrForbiddenAccess) Error() string   { return "forbidden access" }
 
 func HandleError(err error, w http.ResponseWriter) bool {
 	switch err := err.(type) {
@@ -55,15 +61,25 @@ func HandleError(err error, w http.ResponseWriter) bool {
 		body := response.InitRes(http.StatusInternalServerError, err.Error(), err.Users)
 		response.WrapRes(w, body)
 	case ErrParseClaims:
-		body := response.InitRes(http.StatusBadRequest, "Internal server error: Failed to parse claims", nil)
+		body := response.InitRes(http.StatusInternalServerError, "Internal server error: Failed to parse claims", nil)
 		response.WrapRes(w, body)
 	case ErrExpiredToken:
 		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: Token has expired", nil)
 		response.WrapRes(w, body)
+	case ErrNoAuthHeader:
+		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: No auth header", nil)
+		response.WrapRes(w, body)
+	case ErrInvalidAuthHeader:
+		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: Invalid auth header", nil)
+		response.WrapRes(w, body)
+	case ErrForbiddenAccess:
+		body := response.InitRes(http.StatusForbidden, "Forbidden: Access to resources is forbidden", nil)
+		response.WrapRes(w, body)
 	case nil:
 		return true
 	default:
-		body := response.InitRes(http.StatusInternalServerError, "Internal server error", nil)
+		errMsg := "Internal server error: " + err.Error()
+		body := response.InitRes(http.StatusInternalServerError, errMsg, nil)
 		response.WrapRes(w, body)
 	}
 	return false

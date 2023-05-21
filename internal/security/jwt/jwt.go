@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -21,6 +20,10 @@ type JWThandler struct {
 
 type Claims struct {
 	jwt.StandardClaims
+	UserPayload
+}
+
+type UserPayload struct {
 	UserID   uuid.UUID     `json:"user_id"`
 	Username string        `json:"username"`
 	Role     user.UserType `json:"role"`
@@ -35,9 +38,11 @@ func (j *JWThandler) GenerateToken(userID uuid.UUID, username string, role user.
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(j.TokenLife).Unix(),
 		},
-		UserID:   userID,
-		Username: username,
-		Role:     role,
+		UserPayload: UserPayload{
+			UserID:   userID,
+			Username: username,
+			Role:     role,
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, *claims)
@@ -55,14 +60,17 @@ func (j *JWThandler) RefreshToken(tokenInput string) (string, error) {
 
 func (j *JWThandler) ValidateToken(tokenInput string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(
-		tokenInput, 
-		&Claims{}, 
+		tokenInput,
+		&Claims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(j.SecretKey), nil
 		},
 	)
 
 	if err != nil {
+		if err, ok := err.(*jwt.ValidationError); ok && err.Errors == jwt.ValidationErrorExpired {
+			return nil, tools.ErrExpiredToken{}
+		}
 		return nil, err
 	}
 
@@ -71,22 +79,18 @@ func (j *JWThandler) ValidateToken(tokenInput string) (*Claims, error) {
 		return nil, tools.ErrParseClaims{}
 	}
 
-	if claims.ExpiresAt < time.Now().Unix() {
-		return nil, tools.ErrExpiredToken{}
-	}
-
 	return claims, nil
 }
 
 func (j *JWThandler) ValidateRequest(r *http.Request) (*Claims, error) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		return nil, errors.New("no authorization header provided")
+		return nil, tools.ErrNoAuthHeader{}
 	}
 
 	header := strings.Split(authHeader, " ")
 	if len(header) != 2 || strings.ToLower(header[0]) != "bearer" {
-		return nil, errors.New("authorization header format must be Bearer {token}")
+		return nil, tools.ErrInvalidAuthHeader{}
 	}
 
 	return j.ValidateToken(header[1])
