@@ -8,6 +8,7 @@ import (
 
 	"metalloyCore/internal/domain/user"
 	"metalloyCore/pkg/response"
+	"metalloyCore/pkg/validator"
 	"metalloyCore/tools"
 )
 
@@ -26,8 +27,9 @@ func (uc *UserController) EmptyParamHandler(w http.ResponseWriter, req *http.Req
 
 func (uc *UserController) AllUserHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	username := req.URL.Query().Get("username")
-	users, err := uc.Service.GetAllUser(ctx, username)
+	username := req.URL.Query().Get("pageIdx")
+	sizeRaw := req.URL.Query().Get("pageSize")
+	users, err := uc.Service.GetAllUser(ctx, username, sizeRaw)
 	res := map[string]interface{}{"users": users}
 
 	if err != nil {
@@ -45,8 +47,13 @@ func (uc *UserController) AllUserHandler(w http.ResponseWriter, req *http.Reques
 func (uc *UserController) UserHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	username := bunrouter.ParamsFromContext(ctx).ByName("username")
-	returnedUser, err := uc.Service.GetFullUser(ctx, username)
 
+	err := validator.ValidatePayload(req, username)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	returnedUser, err := uc.Service.GetFullUser(ctx, username)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -58,9 +65,15 @@ func (uc *UserController) UserHandler(w http.ResponseWriter, req *http.Request) 
 func (uc *UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	username := bunrouter.ParamsFromContext(ctx).ByName("username")
+
+	err := validator.ValidatePayload(req, username)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
 	user := *user.InitUserUpdate(username)
 
-	err := user.DecodeBody(req.Body)
+	err = user.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -78,7 +91,12 @@ func (uc *UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Req
 	ctx := req.Context()
 	username := bunrouter.ParamsFromContext(ctx).ByName("username")
 
-	err := uc.Service.DeleteUser(ctx, username)
+	err := validator.ValidatePayload(req, username)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	err = uc.Service.DeleteUser(ctx, username)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -90,6 +108,12 @@ func (uc *UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Req
 func (uc *UserController) GetAddressHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	username := bunrouter.ParamsFromContext(ctx).ByName("username")
+
+	err := validator.ValidatePayload(req, username)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
 	returnedAddress, err := uc.Service.GetAddress(ctx, username)
 
 	if !tools.HandleError(err, w) {
@@ -103,9 +127,15 @@ func (uc *UserController) GetAddressHandler(w http.ResponseWriter, req *http.Req
 func (uc *UserController) UpdateAddressHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	username := bunrouter.ParamsFromContext(ctx).ByName("username")
+
+	err := validator.ValidatePayload(req, username)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
 	address := &user.AddressBase{}
 
-	err := address.DecodeBody(req.Body)
+	err = address.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
 		return
 	}

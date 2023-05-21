@@ -38,8 +38,16 @@ func (s *Server) Run() {
 }
 
 func (s *Server) LoadServerConfig() {
-	s.router.
-		Use(middleware.CorsMiddleware).
-		Compat().
-		WithGroup("/api/v1", routes.V1Routes(s.config))
+	s.LoadRoutes()
+}
+
+func (s *Server) LoadRoutes() {
+	v1Group := s.router.NewGroup("/api/v1")
+	v1Group.WithMiddleware(middleware.CorsMiddleware)
+
+	v1Group.WithGroup("", routes.BaseRoutes(s.config))
+	v1Group.WithGroup("/auth", routes.AuthRoutes(s.config))
+
+	v1Group.WithMiddleware(middleware.Authorization(s.config)).
+		WithGroup("/users", routes.UsersRoutes(s.config))
 }
