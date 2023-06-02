@@ -20,15 +20,9 @@ func InitUserController(service user.UserService) *UserController {
 	return &UserController{Service: service}
 }
 
-func (uc *UserController) EmptyParamHandler(w http.ResponseWriter, req *http.Request) {
-	body := *response.InitRes(http.StatusBadRequest, "Bad request: empty parameter", nil)
-	response.WrapRes(w, &body)
-}
-
 func (uc *UserController) AllUserHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	username := req.URL.Query().Get("pageIdx")
-	sizeRaw := req.URL.Query().Get("pageSize")
+	username, sizeRaw := req.URL.Query().Get("pageIdx"), req.URL.Query().Get("pageSize")
 	users, err := uc.Service.GetAllUser(ctx, username, sizeRaw)
 	res := map[string]interface{}{"users": users}
 
