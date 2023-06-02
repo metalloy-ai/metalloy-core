@@ -5,8 +5,9 @@ import (
 
 	"metalloyCore/internal/api/handler"
 	"metalloyCore/internal/config"
+	"metalloyCore/internal/database"
+	"metalloyCore/internal/domain/auth"
 	"metalloyCore/internal/domain/user"
-	"metalloyCore/internal/security/auth"
 	"metalloyCore/internal/security/jwt"
 )
 
@@ -14,10 +15,13 @@ func AuthRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 	repository := user.InitRepository(cfg)
 	userService := user.InitUserService(repository)
 	jwtHandler := jwt.InitJWTHandler(cfg)
-	service := auth.InitAuthService(userService, jwtHandler)
+	redis := database.GetRedisClient(cfg)
+	service := auth.InitAuthService(userService, jwtHandler, redis)
 	controller := handler.InitAuthController(*service)
 	return func(g *bunrouter.CompatGroup) {
 		g.POST("/login", controller.LoginHandler)
+		g.POST("/loginVerify", handler.EmptyParamHandler)
+		g.POST("/loginVerify/:token", controller.LoginVerifyHandler)
 		g.POST("/register", controller.RegisterHandler)
 		g.POST("/forgotPassword", controller.ForgotPasswordHandler)
 	}

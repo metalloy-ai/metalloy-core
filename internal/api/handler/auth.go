@@ -3,8 +3,10 @@ package handler
 import (
 	"net/http"
 
+	"github.com/uptrace/bunrouter"
+
+	"metalloyCore/internal/domain/auth"
 	"metalloyCore/internal/domain/user"
-	"metalloyCore/internal/security/auth"
 	"metalloyCore/pkg/response"
 	"metalloyCore/tools"
 )
@@ -30,7 +32,21 @@ func (ac *AuthController) LoginHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	auth, err := ac.Svc.Login(req.Context(), loginBody.Username, loginBody.Password)
+	err = ac.Svc.Login(req.Context(), loginBody.Username, loginBody.Password)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	body := *response.InitRes(http.StatusOK, "", nil)
+	response.WrapRes(w, &body)
+}
+
+func (ac *AuthController) LoginVerifyHandler(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
+	token := bunrouter.ParamsFromContext(ctx).ByName("token")
+	auth, err := ac.Svc.LoginVerify(ctx, token)
+
 	if !tools.HandleError(err, w) {
 		return
 	}
