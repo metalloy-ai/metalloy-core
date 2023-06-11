@@ -3,9 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"github.com/uptrace/bunrouter"
-
 	"metalloyCore/internal/domain/auth"
+	"metalloyCore/internal/domain/auth/twofa"
 	"metalloyCore/internal/domain/user"
 	"metalloyCore/pkg/response"
 	"metalloyCore/tools"
@@ -42,11 +41,19 @@ func (ac *AuthController) LoginHandler(w http.ResponseWriter, req *http.Request)
 }
 
 func (ac *AuthController) LoginVerifyHandler(w http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
+	twofaReq := twofa.TwofaVerifyRequest{}
 
-	token := bunrouter.ParamsFromContext(ctx).ByName("token")
-	auth, err := ac.Svc.LoginVerify(ctx, token)
+	err := twofaReq.DecodeBody(req.Body)
+	if !tools.HandleError(err, w) {
+		return
+	}
 
+	err = twofaReq.Validate()
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	auth, err := ac.Svc.LoginVerify(req.Context(), twofaReq.Username, twofaReq.Code)
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -67,7 +74,29 @@ func (ac *AuthController) RegisterHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	auth, err := ac.Svc.Register(req.Context(), registerBody)
+	err = ac.Svc.Register(req.Context(), registerBody)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	body := *response.InitRes(http.StatusOK, "", nil)
+	response.WrapRes(w, &body)
+}
+
+func (ac *AuthController) RegisterVerifyHandler(w http.ResponseWriter, req *http.Request) {
+	twofaReq := twofa.TwofaVerifyRequest{}
+
+	err := twofaReq.DecodeBody(req.Body)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	err = twofaReq.Validate()
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	auth, err := ac.Svc.RegisterVerify(req.Context(), twofaReq.Username, twofaReq.Code)
 	if !tools.HandleError(err, w) {
 		return
 	}

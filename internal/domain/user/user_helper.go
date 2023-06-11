@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"io"
 
@@ -69,8 +70,22 @@ func (fr *FullUserResponse) ScanFromRow(row pgx.Row) error {
 func (u *UserCreate) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(u)
 	if err != nil {
-		return tools.ErrInvalidReq{}
+		return tools.NewBadRequestErr("Invalid JSON body: " + err.Error())
 	}
+	return nil
+}
+
+func (u *UserCreate) DecodeBase64(data string) error {
+	decodedBytes, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(decodedBytes, u)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -79,7 +94,7 @@ func (u *UserCreate) Validate() error {
 		u.FirstName == "" || u.LastName == "" || u.PhoneNumber == "" ||
 		u.StreetAddress == "" || u.City == "" || u.State == "" ||
 		u.Country == "" || u.PostalCode == "" || u.Password == "" {
-		return tools.ErrMissingParams{}
+		return tools.NewBadRequestErr("All fields are required")
 	}
 	return nil
 }
@@ -93,7 +108,7 @@ func InitUserUpdate(username string) *UserUpdate {
 func (u *UserUpdate) DecodeBody(data io.ReadCloser) error {
 	err := json.NewDecoder(data).Decode(u)
 	if err != nil {
-		return tools.ErrInvalidReq{}
+		return tools.NewBadRequestErr("Invalid JSON body: " + err.Error())
 	}
 	return nil
 }
