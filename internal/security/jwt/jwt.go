@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -69,14 +70,14 @@ func (j *JWThandler) ValidateToken(tokenInput string) (*Claims, error) {
 
 	if err != nil {
 		if err, ok := err.(*jwt.ValidationError); ok && err.Errors == jwt.ValidationErrorExpired {
-			return nil, tools.ErrExpiredToken{}
+			return nil, tools.NewUnAuthorizedErr("Token is expired")
 		}
 		return nil, err
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
-		return nil, tools.ErrParseClaims{}
+		return nil, errors.New("failed to parse claims")
 	}
 
 	return claims, nil
@@ -85,12 +86,12 @@ func (j *JWThandler) ValidateToken(tokenInput string) (*Claims, error) {
 func (j *JWThandler) ValidateRequest(r *http.Request) (*Claims, error) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		return nil, tools.ErrNoAuthHeader{}
+		return nil, tools.NewUnAuthorizedErr("Authorization header is empty")
 	}
 
 	header := strings.Split(authHeader, " ")
 	if len(header) != 2 || strings.ToLower(header[0]) != "bearer" {
-		return nil, tools.ErrInvalidAuthHeader{}
+		return nil, tools.NewUnAuthorizedErr("Authorization header is invalid")
 	}
 
 	return j.ValidateToken(header[1])

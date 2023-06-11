@@ -12,73 +12,44 @@ import (
 
 type Response interface{}
 type ErrInvalidCredentials struct{}
-type ErrInvalidReq struct{}
-type ErrMissingParams struct{}
 type ErrUserNotFound struct{}
 type ErrUserAlreadyExist struct{}
-type ErrParseClaims struct{}
-type ErrExpiredToken struct{}
 type ErrFailedUsers struct {
 	Users       map[string]interface{}
 	FailedUsers []pgx.Row
 }
-type ErrNoAuthHeader struct{}
-type ErrInvalidAuthHeader struct{}
-type ErrForbiddenAccess struct{}
-type ErrAdminAccess struct{}
+type ErrForbiddenAccess struct{Message string}
+type ErrUnAuthorized struct{Message string}
+type ErrBadRequest struct{Message string}
 
-func (e ErrInvalidCredentials) Error() string { return "invalid credentials" }
-func (e ErrInvalidReq) Error() string         { return "invalid request" }
-func (e ErrMissingParams) Error() string      { return "missing params" }
 func (e ErrUserNotFound) Error() string       { return "user not found" }
 func (e ErrUserAlreadyExist) Error() string   { return "user already exists" }
 func (e ErrFailedUsers) Error() string {
 	return fmt.Sprintf("%d users failed to load", len(e.FailedUsers))
 }
-func (e ErrParseClaims) Error() string       { return "failed to parse claims" }
-func (e ErrExpiredToken) Error() string      { return "token has expired" }
-func (e ErrNoAuthHeader) Error() string      { return "no auth header" }
-func (e ErrInvalidAuthHeader) Error() string { return "invalid auth header" }
 func (e ErrForbiddenAccess) Error() string   { return "forbidden access" }
-func (e ErrAdminAccess) Error() string       { return "admin access" }
+func (e ErrUnAuthorized) Error() string { return e.Message }
+func (e ErrBadRequest) Error() string   { return e.Message }
 
 func HandleError(err error, w http.ResponseWriter) bool {
 	switch err := err.(type) {
-	case ErrInvalidCredentials:
-		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: login failed, invalid username or password", nil)
-		response.WrapRes(w, body)
-	case ErrInvalidReq:
-		body := response.InitRes(http.StatusBadRequest, "Bad request: Unable to process request due to the param or body", nil)
-		response.WrapRes(w, body)
 	case ErrUserNotFound:
 		body := response.InitRes(http.StatusNotFound, "Not Found: User was not found", nil)
 		response.WrapRes(w, body)
 	case ErrUserAlreadyExist:
 		body := response.InitRes(http.StatusConflict, "Conflict: User already exists", nil)
 		response.WrapRes(w, body)
-	case ErrMissingParams:
-		body := response.InitRes(http.StatusBadRequest, "Bad request: Missing or Empty parameter", nil)
-		response.WrapRes(w, body)
 	case ErrFailedUsers:
 		body := response.InitRes(http.StatusInternalServerError, err.Error(), err.Users)
 		response.WrapRes(w, body)
-	case ErrParseClaims:
-		body := response.InitRes(http.StatusInternalServerError, "Internal server error: Failed to parse claims", nil)
+	case ErrUnAuthorized:
+		body := response.InitRes(http.StatusUnauthorized, err.Error(), nil)
 		response.WrapRes(w, body)
-	case ErrExpiredToken:
-		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: Token has expired", nil)
-		response.WrapRes(w, body)
-	case ErrNoAuthHeader:
-		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: No auth header", nil)
-		response.WrapRes(w, body)
-	case ErrInvalidAuthHeader:
-		body := response.InitRes(http.StatusUnauthorized, "Unauthorized: Invalid auth header", nil)
+	case ErrBadRequest:
+		body := response.InitRes(http.StatusBadRequest, err.Error(), nil)
 		response.WrapRes(w, body)
 	case ErrForbiddenAccess:
 		body := response.InitRes(http.StatusForbidden, "Forbidden: Access to resources is forbidden", nil)
-		response.WrapRes(w, body)
-	case ErrAdminAccess:
-		body := response.InitRes(http.StatusForbidden, "Forbidden: Admin access is forbidden", nil)
 		response.WrapRes(w, body)
 	case nil:
 		return true
@@ -100,4 +71,16 @@ func HandleEmptyError(input Response, err error) (interface{}, error) {
 	}
 
 	return input, nil
+}
+
+func NewUnAuthorizedErr(msg string) ErrUnAuthorized {
+	return ErrUnAuthorized{Message: msg}
+}
+
+func NewBadRequestErr(msg string) ErrBadRequest {
+	return ErrBadRequest{Message: msg}
+}
+
+func NewForbiddenAccessErr(msg string) ErrForbiddenAccess {
+	return ErrForbiddenAccess{Message: msg}
 }
