@@ -22,7 +22,7 @@ func InitUserController(service user.UserService) *UserController {
 
 func (uc *UserController) AllUserHandler(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	username, sizeRaw := req.URL.Query().Get("pageIdx"), req.URL.Query().Get("pageSize")
+	username, sizeRaw := req.URL.Query().Get("page-idx"), req.URL.Query().Get("page-size")
 	users, err := uc.Service.GetAllUser(ctx, username, sizeRaw)
 	res := map[string]interface{}{"users": users}
 
@@ -66,7 +66,6 @@ func (uc *UserController) UpdateUserHandler(w http.ResponseWriter, req *http.Req
 	}
 
 	user := *user.InitUserUpdate(username)
-
 	err = user.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
 		return
@@ -109,7 +108,6 @@ func (uc *UserController) GetAddressHandler(w http.ResponseWriter, req *http.Req
 	}
 
 	returnedAddress, err := uc.Service.GetAddress(ctx, username)
-
 	if !tools.HandleError(err, w) {
 		return
 	}
@@ -128,7 +126,6 @@ func (uc *UserController) UpdateAddressHandler(w http.ResponseWriter, req *http.
 	}
 
 	address := &user.AddressBase{}
-
 	err = address.DecodeBody(req.Body)
 	if !tools.HandleError(err, w) {
 		return

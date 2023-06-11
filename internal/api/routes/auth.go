@@ -20,9 +20,9 @@ func AuthRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 	controller := handler.InitAuthController(*service)
 	return func(g *bunrouter.CompatGroup) {
 		g.POST("/login", controller.LoginHandler)
-		g.POST("/loginVerify", handler.EmptyParamHandler)
-		g.POST("/loginVerify/:token", controller.LoginVerifyHandler)
+		g.POST("/login-verify", controller.LoginVerifyHandler)
 		g.POST("/register", controller.RegisterHandler)
-		g.POST("/forgotPassword", controller.ForgotPasswordHandler)
+		g.POST("/register-verify", controller.RegisterVerifyHandler)
+		g.POST("/forgot-password", controller.ForgotPasswordHandler)
 	}
 }
