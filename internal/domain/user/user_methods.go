@@ -98,7 +98,6 @@ func (r *Repository) CreateUser(ctx context.Context, user *UserCreate, hashedPsw
 	defer tx.Rollback(ctx)
 
 	address, err := r.CreateAddress(ctx, tx, *user)
-
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +115,6 @@ func (r *Repository) CreateUser(ctx context.Context, user *UserCreate, hashedPsw
 
 	newUser := &UserResponse{}
 	err = newUser.ScanFromRow(row)
-
 	if err != nil {
 		return nil, err
 	}

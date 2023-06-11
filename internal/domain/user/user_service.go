@@ -37,7 +37,6 @@ func (us *Service) GetAllUser(ctx context.Context, pageIdx string, sizeRaw strin
 	}
 
 	users, failedUsers := us.Repo.GetAllUser(ctx, pageIdx, pageSize)
-
 	if len(failedUsers) > 0 {
 		return nil, tools.ErrFailedUsers{FailedUsers: failedUsers}
 	}
@@ -47,15 +46,15 @@ func (us *Service) GetAllUser(ctx context.Context, pageIdx string, sizeRaw strin
 
 func (us *Service) GetFullUser(ctx context.Context, username string) (*FullUserResponse, error) {
 	user, err := us.Repo.GetFullUser(ctx, username)
-
 	handledUser, err := tools.HandleEmptyError(user, err)
+
 	return handledUser.(*FullUserResponse), err
 }
 
 func (us *Service) GetUser(ctx context.Context, username string) (*User, error) {
 	user, err := us.Repo.GetUser(ctx, username)
-
 	handledUser, err := tools.HandleEmptyError(user, err)
+
 	return handledUser.(*User), err
 }
 
@@ -67,9 +66,10 @@ func (us *Service) UpdateUser(ctx context.Context, user *UserUpdate) (*UserRespo
 		"phone_number": user.PhoneNumber,
 	}
 	updateArr, args, argsCount := tools.BuildUpdateQueryArgs(fieldMap, user.Username)
+	
 	updatedUser, err := us.Repo.UpdateUser(ctx, updateArr, args, argsCount)
-
 	handledUpdatedUser, err := tools.HandleEmptyError(updatedUser, err)
+
 	return handledUpdatedUser.(*UserResponse), err
 }
 
@@ -80,7 +80,6 @@ func (us *Service) CreateUser(ctx context.Context, newUser *UserCreate) (*UserRe
 	}
 
 	user, err := us.Repo.CreateUser(ctx, newUser, hashedPsw)
-
 	if err != nil {
 		var pgErr *pgconn.PgError
 
