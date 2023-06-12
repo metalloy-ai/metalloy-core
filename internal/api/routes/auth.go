@@ -23,6 +23,8 @@ func AuthRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
 		g.POST("/login-verify", controller.LoginVerifyHandler)
 		g.POST("/register", controller.RegisterHandler)
 		g.POST("/register-verify", controller.RegisterVerifyHandler)
-		g.POST("/forgot-password", controller.ForgotPasswordHandler)
+		g.POST("/reset-password", controller.ResetPasswordHandler)
+		g.POST("/reset-password-verify", controller.ResetPasswordVerifyHandler)
+		g.POST("/reset-password-final", controller.ResetPasswordFinalHandler)
 	}
 }

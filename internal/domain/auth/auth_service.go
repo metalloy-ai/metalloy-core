@@ -90,6 +90,25 @@ func (as *AuthService) RegisterVerify(ctx context.Context, username string, code
 	return &AuthResponse{jwtToken}, nil
 }
 
-func (as *AuthService) ForgetPassword(ctx context.Context, username string) error {
+func (as *AuthService) ResetPassword(ctx context.Context, email string) (string, error) {
+	User, err := as.Service.GetUserByEmail(ctx, email)
+	if err != nil {
+		println(User)
+		return "", tools.ErrUserNotFound{}
+	}
+
+	err = twofa.SendTwofaCode(User.UserID, User.Username, User.UserType, User.Email, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return User.Username, nil
+}
+
+func (as *AuthService) ResetPasswordVerify(ctx context.Context, username string, code int) error {
+	return nil
+}
+
+func (as *AuthService) ResetPasswordFinal(ctx context.Context, username string, password string) error {
 	return nil
 }

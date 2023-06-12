@@ -104,7 +104,30 @@ func (ac *AuthController) RegisterVerifyHandler(w http.ResponseWriter, req *http
 	response.InitAuthRes(w, http.StatusCreated, auth.Token)
 }
 
-func (ac *AuthController) ForgotPasswordHandler(w http.ResponseWriter, req *http.Request) {
+func (ac *AuthController) ResetPasswordHandler(w http.ResponseWriter, req *http.Request) {
+	email := req.URL.Query().Get("email")
+	
+	if email == "" {
+		err := tools.NewBadRequestErr("email is required")
+		tools.HandleError(err, w)
+		return
+	}
+
+	username, err := ac.Svc.ResetPassword(req.Context(), email)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	body := *response.InitRes(http.StatusOK, "", username)
+	response.WrapRes(w, &body)
+}
+
+func (ac *AuthController) ResetPasswordVerifyHandler(w http.ResponseWriter, req *http.Request) {
+	body := *response.InitRes(http.StatusOK, "", nil)
+	response.WrapRes(w, &body)
+}
+
+func (ac *AuthController) ResetPasswordFinalHandler(w http.ResponseWriter, req *http.Request) {
 	body := *response.InitRes(http.StatusOK, "", nil)
 	response.WrapRes(w, &body)
 }
