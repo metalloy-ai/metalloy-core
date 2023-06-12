@@ -72,6 +72,20 @@ func (r *Repository) GetUser(ctx context.Context, username string) (*User, error
 	return user, err
 }
 
+func (r *Repository) GetUserByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+	SELECT 
+		user_id, username, email, user_type, first_name, last_name,
+		phone_number, address_id, registration_date, password
+	FROM users WHERE email = $1`
+	row := r.db.QueryRow(ctx, query, email)
+
+	user := &User{}
+	err := user.ScanFromRow(row)
+
+	return user, err
+}
+
 func (r *Repository) UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (*UserResponse, error) {
 	query := fmt.Sprintf(`
 	UPDATE users
@@ -86,6 +100,22 @@ func (r *Repository) UpdateUser(ctx context.Context, updateArr []string, args []
 
 	userResponse := &UserResponse{}
 	err := userResponse.ScanFromRow(row)
+
+	return userResponse, err
+}
+
+func (r *Repository) UpdateUserPassword(ctx context.Context, username string, hashedPsw string) (*UserResponse, error) {
+	query := `
+	UPDATE users
+	SET password = $1
+	WHERE username = $2
+	RETURNING
+		user_id, username, email, user_type, first_name, last_name,
+		phone_number, address_id, registration_date`
+	res := r.db.QueryRow(ctx, query, hashedPsw, username)
+
+	userResponse := &UserResponse{}
+	err := userResponse.ScanFromRow(res)
 
 	return userResponse, err
 }

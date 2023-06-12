@@ -14,7 +14,9 @@ type UserRepository interface {
 	GetAllUser(ctx context.Context, pageIdx string, pageSize int) ([]*UserResponse, []pgx.Row)
 	GetFullUser(ctx context.Context, username string) (*FullUserResponse, error)
 	GetUser(ctx context.Context, username string) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	UpdateUser(ctx context.Context, updateArr []string, args []interface{}, argsCount int) (*UserResponse, error)
+	UpdateUserPassword(ctx context.Context, username string, password string) (*UserResponse, error)
 	CreateUser(ctx context.Context, newUser *UserCreate, hashedPsw string) (*UserResponse, error)
 	DeleteUser(ctx context.Context, username string) error
 	GetAddress(ctx context.Context, username string) (*Address, error)
