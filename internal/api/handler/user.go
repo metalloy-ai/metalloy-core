@@ -84,12 +84,7 @@ func (uc *UserController) DeleteUserHandler(w http.ResponseWriter, req *http.Req
 	ctx := req.Context()
 	username := bunrouter.ParamsFromContext(ctx).ByName("username")
 
-	err := validator.ValidatePayload(req, username)
-	if !tools.HandleError(err, w) {
-		return
-	}
-
-	err = uc.Service.DeleteUser(ctx, username)
+	err := uc.Service.DeleteUser(ctx, username)
 	if !tools.HandleError(err, w) {
 		return
 	}
