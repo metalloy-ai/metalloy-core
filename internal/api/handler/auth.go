@@ -101,12 +101,12 @@ func (ac *AuthController) RegisterVerifyHandler(w http.ResponseWriter, req *http
 		return
 	}
 
-	response.InitAuthRes(w, http.StatusCreated, auth.Token)
+	response.InitAuthRes(w, http.StatusOK, auth.Token)
 }
 
 func (ac *AuthController) ResetPasswordHandler(w http.ResponseWriter, req *http.Request) {
 	email := req.URL.Query().Get("email")
-	
+
 	if email == "" {
 		err := tools.NewBadRequestErr("email is required")
 		tools.HandleError(err, w)
@@ -123,11 +123,45 @@ func (ac *AuthController) ResetPasswordHandler(w http.ResponseWriter, req *http.
 }
 
 func (ac *AuthController) ResetPasswordVerifyHandler(w http.ResponseWriter, req *http.Request) {
-	body := *response.InitRes(http.StatusOK, "", nil)
+	twofa := &twofa.TwofaVerifyRequest{}
+
+	err := twofa.DecodeBody(req.Body)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	err = twofa.Validate()
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	auth, err := ac.Svc.ResetPasswordVerify(req.Context(), twofa.Username, twofa.Code)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	body := *response.InitRes(http.StatusOK, "", &auth)
 	response.WrapRes(w, &body)
 }
 
 func (ac *AuthController) ResetPasswordFinalHandler(w http.ResponseWriter, req *http.Request) {
-	body := *response.InitRes(http.StatusOK, "", nil)
+	twofa := &auth.LoginRequest{}
+
+	err := twofa.DecodeBody(req.Body)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	err = twofa.Validate()
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	User, err := ac.Svc.ResetPasswordFinal(req.Context(), twofa.Username, twofa.Password)
+	if !tools.HandleError(err, w) {
+		return
+	}
+
+	body := *response.InitRes(http.StatusOK, "", User)
 	response.WrapRes(w, &body)
 }

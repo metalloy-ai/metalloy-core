@@ -14,17 +14,27 @@ import (
 	"metalloyCore/tools"
 )
 
-type AuthService struct {
+type AuthService interface {
+	Login(ctx context.Context, username string, password string) error
+	LoginVerify(ctx context.Context, username string, code int) (*AuthResponse, error)
+	Register(ctx context.Context, newUser *user.UserCreate) error
+	RegisterVerify(ctx context.Context, username string, code int) (*AuthResponse, error)
+	ResetPassword(ctx context.Context, email string) (string, error)
+	ResetPasswordVerify(ctx context.Context, username string, code int) (*twofa.TwofaResponse, error)
+	ResetPasswordFinal(ctx context.Context, username string, password string) (*user.UserResponse, error)
+}
+
+type Service struct {
 	Service     user.UserService
 	JWTManager  *jwt.JWThandler
 	RedisClient *redis.Client
 }
 
-func InitAuthService(service user.UserService, jwtHandler *jwt.JWThandler, redisClient *redis.Client) *AuthService {
-	return &AuthService{Service: service, JWTManager: jwtHandler, RedisClient: redisClient}
+func InitAuthService(service user.UserService, jwtHandler *jwt.JWThandler, redisClient *redis.Client) AuthService {
+	return &Service{Service: service, JWTManager: jwtHandler, RedisClient: redisClient}
 }
 
-func (as *AuthService) Login(ctx context.Context, username string, password string) error {
+func (as *Service) Login(ctx context.Context, username string, password string) error {
 	User, err := as.Service.GetUser(ctx, username)
 	if err != nil {
 		return tools.ErrUserNotFound{}
@@ -37,7 +47,7 @@ func (as *AuthService) Login(ctx context.Context, username string, password stri
 	return tools.NewUnAuthorizedErr("invalid password")
 }
 
-func (as *AuthService) LoginVerify(ctx context.Context, username string, code int) (*AuthResponse, error) {
+func (as *Service) LoginVerify(ctx context.Context, username string, code int) (*AuthResponse, error) {
 	authPayload, err := twofa.VerifyTwofaCode(as.RedisClient, username, code)
 	if err != nil {
 		return nil, err
@@ -51,7 +61,7 @@ func (as *AuthService) LoginVerify(ctx context.Context, username string, code in
 	return &AuthResponse{jwtToken}, nil
 }
 
-func (as *AuthService) Register(ctx context.Context, newUser *user.UserCreate) error {
+func (as *Service) Register(ctx context.Context, newUser *user.UserCreate) error {
 	serialized, err := json.Marshal(newUser)
 	if err != nil {
 		return err
@@ -60,7 +70,7 @@ func (as *AuthService) Register(ctx context.Context, newUser *user.UserCreate) e
 	return twofa.SendTwofaCode(newUser.UserID, newUser.Username, newUser.UserType, newUser.Email, serialized)
 }
 
-func (as *AuthService) RegisterVerify(ctx context.Context, username string, code int) (*AuthResponse, error) {
+func (as *Service) RegisterVerify(ctx context.Context, username string, code int) (*AuthResponse, error) {
 	twofaResponse, err := twofa.VerifyTwofaCode(as.RedisClient, username, code)
 	if err != nil {
 		return nil, err
@@ -77,6 +87,12 @@ func (as *AuthService) RegisterVerify(ctx context.Context, username string, code
 		return nil, err
 	}
 
+	hashed, err := security.HashPassword(newUser.Password)
+	if err != nil {
+		return nil, err
+	}
+	newUser.Password = hashed
+	
 	user, err := as.Service.CreateUser(ctx, newUser)
 	if err != nil {
 		return nil, err
@@ -90,25 +106,40 @@ func (as *AuthService) RegisterVerify(ctx context.Context, username string, code
 	return &AuthResponse{jwtToken}, nil
 }
 
-func (as *AuthService) ResetPassword(ctx context.Context, email string) (string, error) {
-	User, err := as.Service.GetUserByEmail(ctx, email)
+func (as *Service) ResetPassword(ctx context.Context, email string) (string, error) {
+	user, err := as.Service.GetUserByEmail(ctx, email)
 	if err != nil {
-		println(User)
+		println(user)
 		return "", tools.ErrUserNotFound{}
 	}
 
-	err = twofa.SendTwofaCode(User.UserID, User.Username, User.UserType, User.Email, nil)
+	err = twofa.SendTwofaCode(user.UserID, user.Username, user.UserType, user.Email, nil)
 	if err != nil {
 		return "", err
 	}
 
-	return User.Username, nil
+	return user.Username, nil
 }
 
-func (as *AuthService) ResetPasswordVerify(ctx context.Context, username string, code int) error {
-	return nil
+func (as *Service) ResetPasswordVerify(ctx context.Context, username string, code int) (*twofa.TwofaResponse, error) {
+	twofaResponse, err := twofa.VerifyTwofaCode(as.RedisClient, username, code)
+	if err != nil {
+		return nil, err
+	}
+
+	return twofaResponse, nil
 }
 
-func (as *AuthService) ResetPasswordFinal(ctx context.Context, username string, password string) error {
-	return nil
+func (as *Service) ResetPasswordFinal(ctx context.Context, username string, password string) (*user.UserResponse, error) {
+	hashed, err := security.HashPassword(password)
+	if err != nil {
+		return nil, err
+	}
+
+	User, err := as.Service.UpdateUserPassword(ctx, username, hashed)
+	if err != nil {
+		return nil, err
+	}
+
+	return User, nil
 }
