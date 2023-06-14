@@ -4,15 +4,10 @@ import (
 	"github.com/uptrace/bunrouter"
 
 	"metalloyCore/internal/api/handler"
-	"metalloyCore/internal/config"
-	"metalloyCore/internal/domain/user"
 	"metalloyCore/internal/security/middleware"
 )
 
-func UsersRoutes(cfg config.Setting) func(g *bunrouter.CompatGroup) {
-	repository := user.InitRepository(cfg)
-	service := user.InitUserService(repository)
-	controller := handler.InitUserController(service)
+func UsersRoutes(controller *handler.UserController) func(g *bunrouter.CompatGroup) {
 	return func(g *bunrouter.CompatGroup) {
 		g.GET("", middleware.Admin(controller.AllUserHandler))
 		g.GET("/user", handler.EmptyParamHandler)
