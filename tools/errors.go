@@ -10,7 +10,6 @@ import (
 	"metalloyCore/pkg/response"
 )
 
-type Response interface{}
 type ErrInvalidCredentials struct{}
 type ErrUserNotFound struct{}
 type ErrUserAlreadyExist struct{}
@@ -18,18 +17,18 @@ type ErrFailedUsers struct {
 	Users       map[string]interface{}
 	FailedUsers []pgx.Row
 }
-type ErrForbiddenAccess struct{Message string}
-type ErrUnAuthorized struct{Message string}
-type ErrBadRequest struct{Message string}
+type ErrForbiddenAccess struct{ Message string }
+type ErrUnAuthorized struct{ Message string }
+type ErrBadRequest struct{ Message string }
 
-func (e ErrUserNotFound) Error() string       { return "user not found" }
-func (e ErrUserAlreadyExist) Error() string   { return "user already exists" }
+func (e ErrUserNotFound) Error() string     { return "user not found" }
+func (e ErrUserAlreadyExist) Error() string { return "user already exists" }
 func (e ErrFailedUsers) Error() string {
 	return fmt.Sprintf("%d users failed to load", len(e.FailedUsers))
 }
-func (e ErrForbiddenAccess) Error() string   { return "forbidden access" }
-func (e ErrUnAuthorized) Error() string { return e.Message }
-func (e ErrBadRequest) Error() string   { return e.Message }
+func (e ErrForbiddenAccess) Error() string { return e.Message }
+func (e ErrUnAuthorized) Error() string    { return e.Message }
+func (e ErrBadRequest) Error() string      { return e.Message }
 
 func HandleError(err error, w http.ResponseWriter) bool {
 	switch err := err.(type) {
@@ -49,7 +48,7 @@ func HandleError(err error, w http.ResponseWriter) bool {
 		body := response.InitRes(http.StatusBadRequest, err.Error(), nil)
 		response.WrapRes(w, body)
 	case ErrForbiddenAccess:
-		body := response.InitRes(http.StatusForbidden, "Forbidden: Access to resources is forbidden", nil)
+		body := response.InitRes(http.StatusForbidden, err.Error(), nil)
 		response.WrapRes(w, body)
 	case nil:
 		return true
@@ -61,7 +60,7 @@ func HandleError(err error, w http.ResponseWriter) bool {
 	return false
 }
 
-func HandleEmptyError(input Response, err error) (interface{}, error) {
+func HandleEmptyError(input interface{}, err error) (interface{}, error) {
 	if errors.Is(err, pgx.ErrNoRows) {
 		return input, ErrUserNotFound{}
 	}
