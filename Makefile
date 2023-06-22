@@ -36,4 +36,8 @@ dev:
 
 testAll:
 	go clean -testcache
-	go test -v ./test/...
+	go test ./internal/... -race -v
+
+testUser:
+	go clean -testcache
+	go test ./internal/domain/user -race -v
