@@ -21,8 +21,6 @@ type Setting struct {
 }
 
 func LoadBaseConfig() *Setting {
-	LoadEnv(".env")
-
 	version := os.Getenv("VERSION")
 	apiVersion := os.Getenv("API_VERSION")
 	port, _ := strconv.Atoi(os.Getenv("PORT"))

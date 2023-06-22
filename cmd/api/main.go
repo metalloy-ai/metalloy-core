@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	config.LoadEnv(".env")
 	cfg := config.LoadBaseConfig()
 	validator.ValidateConfig()
 	server := api.InitServer(*cfg)
