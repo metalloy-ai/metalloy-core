@@ -34,10 +34,11 @@ HOST="localhost"
 ## User Routes
 
 ```bash
-    - [GET]   /api/v1/users?pageIdx={optional}&pageSize={optional}
-    - [GET]   /users/user/:username
-    - [PATCH] /users/user/:username
-    - [DEL]   /users/user/:username
+    - [GET] (admin) /api/v1/users?pageIdx={optional}&pageSize={optional}
+    - [GET]         /users/user/:username
+    - [PATCH]       /users/user/:username
+    - [DEL] (admin) /users/user/:username
+    headers - Authorization: Bearer {token}
 ```
 
 ## User Sub-Routes (Address)
@@ -45,6 +46,7 @@ HOST="localhost"
 ```bash
     - [GET]   /users/user/:username/address
     - [PATCH] /users/user/:username/address
+    headers - Authorization: Bearer {token}
 ```
 
 ### User Response Body
@@ -95,14 +97,36 @@ HOST="localhost"
 
 ```bash
     - [POST] /auth/login
+    - [POST] /auth/login-verify
     - [POST] /auth/register
-    - [POST] /auth/forgotPassword
-    headers - Authorization: Bearer {token}
+    - [POST] /auth/register-verify
+    - [POST] /auth/reset-password?email={required}
+    - [POST] /auth/reset-password-verify
+    - [POST] /auth/reset-password-final
+```
+
+### Auth Body
+    
+```bash
+Auth Credientials
+{
+    "username": string,
+    "password": string
+}
+
+Auth Verify
+{
+    "username": string,
+    "code": integer
+}
 ```
 
 ### Login Body
 
 ```bash
+Login Verify (Auth Verify)
+
+Login Final
 {
     "username": string,
     "password": string
@@ -112,6 +136,7 @@ HOST="localhost"
 ### Register Body
 
 ```bash
+Register Initial
 {
     "username": string,
     "email": string,
@@ -126,4 +151,13 @@ HOST="localhost"
     "country": string,
     "postal_code": string
 }
+
+Register Verify (Auth Verify)
+```
+
+### Reset Password Body
+
+```bash
+Reset Password Verify (Auth Verify)
+Reset Password Final (Auth Credientials)
 ```
